@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # load sea level data from csv
-# 4/15/18
+# 4/26/18
 
 import csv
 from collections import OrderedDict
@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 class Data:
 
-    data_path = '/home/pi/gitbucket/stepper/yearly_maxes.csv'
+    data_path = '/home/pi/gitbucket/scroll/yearly_sea_level_maxes.csv'
 
     def __init__(self):
         self.data = self._load_data()
@@ -35,8 +35,8 @@ class Data:
 
     def translate(self, new_min=-1.0, new_max=1.0):
         '''
-        translate normalized datapoints to specified range,
-        or -1.0 to 1.0 if not specified
+        translate normalized datapoints to range specified by new_min and new_max.
+        defaults to a range of -1.0 to 1.0
         '''
 
         return [new_min + (n * (new_max - new_min)) for n in self.normalized_feets]
