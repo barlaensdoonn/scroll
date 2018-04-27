@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # control a stepper motor from RasPi with Adafruit TB6612 driver
-# 4/15/18
+# 4/27/18
 
 from time import sleep
 from gpiozero import OutputDevice
@@ -33,15 +33,24 @@ class Stepper:
             self._step(sequence)
             sleep(pause)
 
+    def dynamic_step(self):
+        for sequence in self._sequencer():
+            pause = yield
+            self._step(sequence)
+            sleep(pause)
 
 if __name__ == '__main__':
     pins = [4, 17, 27, 22]
     stepper = Stepper(pins)
+    pause = 0.01
 
     try:
-        print('stepping the stepper...')
+        print('initializing stepper...')
+        stppr = stepper.dynamic_step()
+        stppr.send(None)
+        print('stepping the stepper')
+
         while True:
-            stepper.step()
-            # print()
+            stppr.send(pause)
     except KeyboardInterrupt:
         print('...user exit received...')
