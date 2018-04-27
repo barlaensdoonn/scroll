@@ -24,15 +24,13 @@ class Stepper:
             for sequence in self.sequences:
                 yield sequence
 
+    def _step(self, sequence):
+        for i in range(len(self.step_pins)):
+            self.step_pins[i].on() if sequence[i] else self.step_pins[i].off()
+
     def step(self, pause=0.01):
         for sequence in self.sequences:
-            for i in range(len(self.step_pins)):
-                if sequence[i]:
-                    # print('turning pin {} on'.format(step_pins[i].pin))
-                    self.step_pins[i].on()
-                else:
-                    # print('turning pin {} off'.format(step_pins[i].pin))
-                    self.step_pins[i].off()
+            self._step(sequence)
             sleep(pause)
 
 
