@@ -1,27 +1,37 @@
 #!/usr/bin/python3
 # control a stepper motor from RasPi with Adafruit TB6612 driver
-# 4/27/18
+# 4/15/18
+# updated 4/27/18
 
 from time import sleep
 from gpiozero import OutputDevice
 
 
 class Stepper:
-    # each sequence represents a single step
-    sequences = [
-        [1, 0, 1, 0],
-        [0, 1, 1, 0],
-        [0, 1, 0, 1],
-        [1, 0, 0, 1]
-    ]
+    # moving from one phase to the next in either direction represents a single step
+    phases = {
+        'clockwise': [
+            [1, 0, 1, 0],
+            [0, 1, 1, 0],
+            [0, 1, 0, 1],
+            [1, 0, 0, 1]
+        ],
+        'counter-clockwise': [
+            [1, 0, 0, 1],
+            [0, 1, 0, 1],
+            [0, 1, 1, 0],
+            [1, 0, 1, 0]
+        ]
+    }
 
-    def __init__(self, pins):
+    def __init__(self, pins, direction='clockwise'):
         self.pins = pins
         self.step_pins = [OutputDevice(pin) for pin in self.pins]
+        self.direction = direction
         self.driver = self._init_driver()
 
     def _init_driver(self):
-        '''get the driver generator object ready to use'''
+        '''initialize the driver generator object'''
 
         driver = self._driver()
         driver.send(None)
@@ -29,17 +39,17 @@ class Stepper:
         return driver
 
     def _sequencer(self):
-        '''infinite generator to loop through the step sequences'''
+        '''infinite generator to loop through the step phases'''
 
         while True:
-            for sequence in self.sequences:
-                yield sequence
+            for phase in self.phases[self.direction]:
+                yield phase
 
-    def _step(self, sequence):
-        '''ingest the step sequence and turn output pins on or off accordingly'''
+    def _step(self, phase):
+        '''ingest the step phase and turn output pins on or off accordingly'''
 
         for i in range(len(self.step_pins)):
-            self.step_pins[i].on() if sequence[i] else self.step_pins[i].off()
+            self.step_pins[i].on() if phase[i] else self.step_pins[i].off()
 
     def _driver(self):
         '''
@@ -47,9 +57,9 @@ class Stepper:
         pause values are passed in via send() in the step() method.
         '''
 
-        for sequence in self._sequencer():
+        for phase in self._sequencer():
             pause = yield
-            self._step(sequence)
+            self._step(phase)
             sleep(pause)
 
     def step(self, pause=0.01):
@@ -68,8 +78,8 @@ class Stepper:
         will probably be removed in the near future.
         '''
 
-        for sequence in self.sequences:
-            self._step(sequence)
+        for phase in self.phases:
+            self._step(phase)
             sleep(pause)
 
 
