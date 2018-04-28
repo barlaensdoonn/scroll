@@ -18,49 +18,63 @@ class Stepper:
     def __init__(self, pins):
         self.pins = pins
         self.step_pins = [OutputDevice(pin) for pin in self.pins]
-        self.stepper = self._init_stepper()
+        self.driver = self._init_driver()
 
-    def _init_stepper(self):
-        '''get the stepper generator object ready to use'''
+    def _init_driver(self):
+        '''get the driver generator object ready to use'''
 
-        stppr = self._gen_step()
-        stppr.send(None)
+        driver = self._driver()
+        driver.send(None)
 
-        return stppr
+        return driver
 
     def _sequencer(self):
+        '''infinite generator to loop through the step sequences'''
+
         while True:
             for sequence in self.sequences:
                 yield sequence
 
     def _step(self, sequence):
+        '''ingest the step sequence and turn output pins on or off accordingly'''
+
         for i in range(len(self.step_pins)):
             self.step_pins[i].on() if sequence[i] else self.step_pins[i].off()
 
-    def _gen_step(self):
+    def _driver(self):
+        '''
+        generator object for controlling the stepper motor.
+        pause values are passed in via send() in the step() method.
+        '''
+
         for sequence in self._sequencer():
             pause = yield
             self._step(sequence)
             sleep(pause)
 
+    def step(self, pause=0.01):
+        '''
+        step the stepper by sending a pause time to the stepper driver generator object
+        if this method is called without a pause time, it defaults to 10 milliseconds.
+        '''
+
+        self.driver.send(pause)
+
     def nongen_step(self, pause=0.01):
         '''
         the non-generator object way to step the stepper.
 
-        this needs to be called in a while True loop.
-        just here for reference, will probably be removed in the near future.
+        this needs to be called in an external loop. it's just here for reference,
+        will probably be removed in the near future.
         '''
 
         for sequence in self.sequences:
             self._step(sequence)
             sleep(pause)
 
-    def step(self, pause=0.01):
-        self.stepper.send(pause)
-
 
 if __name__ == '__main__':
-    pins = [4, 17, 27, 22]
+    pins = [4, 17, 27, 22]  # GPIO pins used to control the stepper
     stepper = Stepper(pins)
 
     try:
