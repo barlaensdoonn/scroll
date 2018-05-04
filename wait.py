@@ -8,6 +8,13 @@ from datetime import datetime, timedelta
 
 
 class Wait:
+    '''
+    class to handle sleeping until some point in the future. it uses time.sleep(),
+    and therefore is blocking.
+
+    there is one public method in this class, wait_til().
+    read its docstring for details on how it's used.
+    '''
 
     def __init__(self):
         self.format = '%m:%d:%y:%H:%M:%S'
@@ -62,7 +69,7 @@ class Wait:
         return self._is_future(next_time) if next_time else None
 
     def _calculate_wait(self, future):
-        '''calculate total # of seconds between now and next_time for time.sleep()'''
+        '''calculate total # of seconds between now and future for time.sleep()'''
         return (future - datetime.now()).total_seconds()
 
     def wait_til(self, next_time):
