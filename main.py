@@ -2,10 +2,10 @@
 # control speed of a stepper motor by mapping pause time
 # between steps to an arbitrary range of values
 # 4/15/18
-# updated 4/30/18
+# updated 5/3/18
 
-from time import sleep
 from data import Data
+from wait import Wait
 from stepper import Stepper
 
 
@@ -33,6 +33,8 @@ def move(stepper, num_steps, pause):
 
 
 if __name__ == '__main__':
+    waiter = Wait()
+
     # NOTE: instead of max_steps_per_move being a constant, the # of steps
     # per movement event will be dynamically calculated based on
     # the current circumference of the roll
@@ -50,12 +52,8 @@ if __name__ == '__main__':
 
         # move the first motor a small number of steps to let out paper
         move(steppers['let_out'], max_steps_per_move, pauses[i])
-
-        # TODO: this is where the limit switch would provide feedback
-        sleep(1)
+        waiter.wait_til(2)
 
         # move the second motor a small number of steps to take in the paper that has been let out
         move(steppers['take_up'], max_steps_per_move, pauses[i])
-
-        # NOTE: second limit switch provide feedback here?
-        sleep(1)
+        waiter.wait_til(2)  # TODO: this is where the limit switch provides feedback
