@@ -13,11 +13,10 @@ sudo apt-get install python3-gpiozero
 ```
 
 ## real time clock
-currently using the [RasPi DS1307 RTC-I2C HAT from Nation Electronics](http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html)
+currently using the [RasPi DS1307 RTC-I2C HAT] from Nation Electronics(http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html)
 
 instructions from their website:
-run ```sudo raspi-config``` and enable I2C in "Advanced Options"
-then reboot
+run ```sudo raspi-config``` and enable I2C in "Advanced Options", then reboot
 
 install I2C-tools:
 ```
@@ -29,12 +28,12 @@ check that RTC shows up on I2C channel 68:
 sudo i2cdetect -y 1
 ```
 
-add dtoverlay=i2c-rtc,ds1307 to the bottom of /boot/config.txt:
+add ```dtoverlay=i2c-rtc,ds1307``` to the bottom of /boot/config.txt:
 ```
 sudo nano /boot/config.txt
 ```
 
-add rtc-ds1307 to /etc/modules:
+add ```rtc-ds1307``` to /etc/modules:
 ```
 sudo nano /etc/modules
 ```
