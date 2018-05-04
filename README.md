@@ -53,7 +53,7 @@ fi
 
 reboot, and if the Pi is connected to the internet the current date and time should be set automatically. verify this with:
 ```
-sudo nano /etc/modules
+sudo hwclock -r
 ```
 
 if not connected to the internet, first the system date must be set, and then that date must be written to the hwclock:
