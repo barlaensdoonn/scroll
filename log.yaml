@@ -1,0 +1,51 @@
+---
+version: 1
+
+formatters:
+    file:
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+    console:
+        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: INFO
+        formatter: console
+        stream: ext://sys.stdout
+    file:
+        class: logging.FileHandler
+        level: INFO
+        formatter: file
+
+loggers:
+    compute:
+        level: INFO
+        handlers: [file]
+        propogate: False
+    data:
+        level: INFO
+        handlers: [file]
+        propogate: False
+    stepper-let_out:
+        level: INFO
+        handlers: [file]
+        propogate: False
+    stepper-take_up:
+        level: INFO
+        handlers: [file]
+        propogate: False
+    wait:
+        level: INFO
+        handlers: [file]
+        propogate: False
+    main:
+        level: INFO
+        handlers: [file]
+        propogate: False
+
+root:
+    level: INFO
+    handlers: [console]

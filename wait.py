@@ -3,6 +3,7 @@
 # 5/3/18
 # updated 5/3/18
 
+import logging
 from time import sleep
 from datetime import datetime, timedelta
 
@@ -17,7 +18,14 @@ class Wait:
     '''
 
     def __init__(self):
+        self.logger = self._init_logger()
         self.format = '%m:%d:%y:%H:%M:%S'
+
+    def _init_logger(self):
+        logger = logging.getLogger('wait')
+        logger.info('wait logger instantiated')
+
+        return logger
 
     def _check_len(self, next_time):
         '''
@@ -47,7 +55,7 @@ class Wait:
                 next_time = ':'.join([today, next_time])
             return datetime.strptime(next_time, self.format)
         except ValueError:
-            print('improperly formatted input, cannot convert to datetime object')
+            self.logger.error('improperly formatted input, cannot convert to datetime object')
             return None
 
     def _is_future(self, next_time):
@@ -56,7 +64,7 @@ class Wait:
         if next_time > datetime.now():
             return next_time
         else:
-            print('input time is not in the future')
+            self.logger.error('input time is not in the future')
             return None
 
     def _validate_time(self, next_time):
@@ -74,8 +82,8 @@ class Wait:
 
     def wait_til(self, next_time):
         '''
-        next_time should be a string formatted in one of two ways,
-        where each field is a zero padded decimal number assuming a 24-hour clock:
+        next_time should be a string formatted in one of two ways, where
+        each field is a zero padded decimal number assuming a 24-hour clock:
 
         1. 'month:day:year:hour:minute:second'
            i.e. '01:15:20:23:59:00' is Jan 15, 2020 at 11:59PM.
@@ -90,9 +98,9 @@ class Wait:
 
         if valid_time:
             sleeps = self._calculate_wait(valid_time)
-            print('pausing until {}, or {} seconds from now'.format(valid_time, sleeps))
+            self.logger.info('pausing until {}, or {} seconds from now'.format(valid_time, sleeps))
             sleep(sleeps)
         else:
-            print('invalid input, unable to calculate wait time')
-            print('sleeping for 30 seconds instead')
+            self.logger.error('invalid input, unable to calculate wait time')
+            self.logger.warning('sleeping for 30 seconds instead')
             self.wait_til(30)

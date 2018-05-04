@@ -4,6 +4,7 @@
 # 4/15/18
 # updated 4/28/18
 
+import logging
 from math import pi
 
 
@@ -19,6 +20,7 @@ class PaperPusher:
     max_inches_per_move = 10  # max # of inches that can move based on the travel of the idler arm
 
     def __init__(self):
+        self.logger = self._init_logger()
         self.steps_completed = 0
         self.num_revs_completed = self.get_num_revs_completed()
         self.total_revs_to_complete = self.get_total_num_revs()
@@ -26,6 +28,12 @@ class PaperPusher:
         self.current_diameter = self.get_current_diameter()
         self.current_circumference = self.get_current_circumference()
         self.inches_per_step = self.get_inches_per_step()
+
+    def _init_logger(self):
+        logger = logging.getLogger('compute')
+        logger.info('compute logger instantiated')
+
+        return logger
 
     def _get_circumference(self, diameter):
         '''C = 2πr = πd'''
