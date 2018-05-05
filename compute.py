@@ -9,7 +9,7 @@ from math import pi
 from wait import Wait
 
 
-class PaperPusher:
+class Compute:
     # paper constants - measurement units are inches
     roll_width = 4.5
     core_diameter = 4
@@ -23,7 +23,7 @@ class PaperPusher:
     max_inches_per_move = 10  # max # of inches that can move based on the travel of the idler arm
 
     def __init__(self):
-        #TODO: add total_inches_to_move, total_inches_moved
+        # TODO: add total_inches_to_move, total_inches_moved
         # self.logger = self._init_logger()
         self.steps_completed = 0
         self.total_inches_moved = 0
@@ -118,14 +118,12 @@ class PaperPusher:
 
     def _run(self):
         '''debug purposes only'''
-        waiter = Wait()
 
         for i in range(int(self.total_steps_to_complete)):
             self.update()
             print()
-            # waiter.wait_til(1)
 
 
 if __name__ == '__main__':
-    push = PaperPusher()
+    push = Compute()
     push._run()
