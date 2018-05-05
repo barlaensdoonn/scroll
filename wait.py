@@ -10,8 +10,8 @@ from datetime import datetime, timedelta
 
 class Wait:
     '''
-    class to handle sleeping until some point in the future. it uses time.sleep(),
-    and therefore is blocking.
+    class to handle sleeping until some point in the future.
+    it uses time.sleep(), and therefore is blocking.
 
     there is one public method in this class, wait_til().
     read its docstring for details on how it's used.
@@ -37,12 +37,14 @@ class Wait:
     def _parse(self, next_time):
         '''
         if next_time is a single field, treat it as an int representing seconds
-        in the future. attempt to add it to datetime.now() and return it.
-        if next_time is 3 fields separated by ':' prepend it with the current date,
+        from now til some point in the future. attempt to add it to datetime.now()
+        and return it.
+
+        if next_time is 3 fields separated by ':', prepend it with the current date.
         otherwise leave it as is. either way attempt to convert it to datetime object.
 
         both int(next_time) and datetime.strptime(next_time, self.format) will
-        throw ValueError if they fail due to improperly formatted arguments
+        throw ValueError if they fail due to bad arguments.
         '''
         next_time = str(next_time)
         check = self._check_len(next_time)
