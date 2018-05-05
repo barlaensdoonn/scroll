@@ -8,6 +8,7 @@ import os
 import yaml
 import logging
 import logging.config
+from gpiozero import Button
 from socket import gethostname
 from data import Data
 from wait import Wait
@@ -47,6 +48,14 @@ def configure_logger(basepath, hostname):
     return _init_logger()
 
 
+def init_limit_switch():
+    switch_pin = 12
+    switch = Button(switch_pin)
+    switch.when_pressed = lambda: logger.info('limit switch engaged')
+
+    return switch
+
+
 def init_steppers():
     pins = {
         'clockwise': [4, 17, 27, 22],
@@ -62,13 +71,23 @@ def init_steppers():
 
 
 def move(stepper, num_steps, pause):
+    logger.info('moving {} stepper {} steps'.format(stepper, num_steps))
+
     for i in range(num_steps):
-        stepper.step(pause)
+        steppers[stepper].step(pause)
+
+
+def increment_to_limit(stepper, pause, switch):
+    logger.info('incrementing {} stepper by one step until limit switch is engaged'.format(stepper))
+
+    while not switch.is_pressed:
+        steppers[stepper].step(pause)
 
 
 if __name__ == '__main__':
     logger = configure_logger(get_basepath(), get_hostname())
     waiter = Wait()
+    switch = init_limit_switch()
 
     # NOTE: instead of max_steps_per_move being a constant, the # of steps
     # per movement event will be dynamically calculated based on
@@ -85,10 +104,14 @@ if __name__ == '__main__':
     for i in range(len(pauses)):
         logger.info('year = {}   feet = {}   pause = {}'.format(my_data.years[i], my_data.max_feets[i], pauses[i]))
 
-        # move the first motor a small number of steps to let out paper
-        move(steppers['let_out'], max_steps_per_move, pauses[i])
+        # move the first motor a number of steps to let out paper
+        move('let_out', max_steps_per_move, pauses[i])
         waiter.wait_til(1)
 
-        # move the second motor a small number of steps to take in the paper that has been let out
-        move(steppers['take_up'], max_steps_per_move, pauses[i])
-        waiter.wait_til(1)  # TODO: this is where the limit switch provides feedback
+        # move the take up motor a smaller number of steps than the first motor
+        # to account for differences in winding tightness
+        move('take_up', int(max_steps_per_move * 0.8), pauses[i])
+
+        # increment stepper until limit switch is engaged
+        increment_to_limit('take_up', pauses[i], switch)
+        waiter.wait_til(1)
