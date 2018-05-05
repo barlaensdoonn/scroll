@@ -2,17 +2,20 @@
 # control speed of a stepper motor by mapping pause time
 # between steps to an arbitrary range of values
 # 4/15/18
-# updated 4/28/18
+# updated 5/5/18
 
 import logging
 from math import pi
+from wait import Wait
 
 
 class PaperPusher:
-    # paper constants
-    diameter_start = 96  # starting with 8' diameter
+    # paper constants - measurement units are inches
+    roll_width = 4.5
+    core_diameter = 4
+    paper_thickness = 0.0062
+    diameter_start = 47.5  # starting with ~4' diameter
     diameter_end = diameter_start / 2  # we want to move half the roll by the end
-    width_of_paper = None  # don't know yet
 
     # motor constants
     steps_per_revolution = 200
@@ -20,14 +23,16 @@ class PaperPusher:
     max_inches_per_move = 10  # max # of inches that can move based on the travel of the idler arm
 
     def __init__(self):
-        self.logger = self._init_logger()
+        #TODO: add total_inches_to_move, total_inches_moved
+        # self.logger = self._init_logger()
         self.steps_completed = 0
+        self.total_inches_moved = 0
         self.num_revs_completed = self.get_num_revs_completed()
-        self.total_revs_to_complete = self.get_total_num_revs()
-        self.total_steps_to_complete = self.get_total_num_steps()
         self.current_diameter = self.get_current_diameter()
         self.current_circumference = self.get_current_circumference()
         self.inches_per_step = self.get_inches_per_step()
+        self.total_revs_to_complete = self.get_total_num_revs()  # this attr mainly for testing, may be removed in the future
+        self.total_steps_to_complete = self.get_total_num_steps()  # this attr mainly for testing, may be removed in the future
 
     def _init_logger(self):
         logger = logging.getLogger('compute')
@@ -49,9 +54,9 @@ class PaperPusher:
     def get_current_diameter(self):
         '''
         current diameter should be starting diameter minus
-        number of revolutions times width of the paper
+        number of revolutions times thickness of the paper
         '''
-        return self.diameter_start - (self.num_revs_completed * self.width_of_paper)
+        return self.diameter_start - (self.num_revs_completed * self.paper_thickness)
 
     def get_current_circumference(self):
         '''
@@ -60,22 +65,67 @@ class PaperPusher:
         '''
         return self._get_circumference(self.current_diameter)
 
-    def get_total_num_revs(self):
-        '''
-        total number of revolutions to complete should be the difference between
-        the starting diameter and ending diameter divided by the width of the paper
-        '''
-        return (self.diameter_start - self.diameter_end) / self.width_of_paper
-
-    def get_total_num_steps(self):
-        '''
-        total # of steps is total # of revolutions times steps per revolution
-        '''
-        return self.total_num_revolutions * self.steps_per_revolution
-
     def get_inches_per_step(self):
         '''
         the # of inches of paper that move with each step of the motor is equal
         to the current circumference divided by # of steps per full revolution
         '''
         return self.current_circumference / self.steps_per_revolution
+
+    def get_total_num_revs(self):
+        '''
+        total number of revolutions to complete should be the difference between
+        the starting diameter and ending diameter divided by the width of the paper
+        '''
+        return (self.current_diameter - self.diameter_end) / self.paper_thickness
+
+    def get_total_num_steps(self):
+        '''
+        total # of steps is total # of revolutions times steps per revolution
+        '''
+        return self.total_revs_to_complete * self.steps_per_revolution
+
+    def print_attrs(self):
+        print('steps completed: {}'.format(self.steps_completed))
+        print('total inches moved: {}'.format(self.steps_completed))
+        print('revolutions completed: {}'.format(self.num_revs_completed))
+        print('current diameter: {}'.format(self.current_diameter))
+        print('current circumference: {}'.format(self.current_circumference))
+        print('inches per step: {}'.format(self.inches_per_step))
+        print('revs to complete: {}'.format(self.total_revs_to_complete))
+        print('steps to complete: {}'.format(self.total_steps_to_complete))
+
+    def log_attrs(self):
+        self.logger.debug('steps completed: {}'.format(self.steps_completed))
+        self.logger.debug('total inches moved: {}'.format(self.steps_completed))
+        self.logger.debug('revolutions completed: {}'.format(self.num_revs_completed))
+        self.logger.debug('current_diameter: {}'.format(self.current_diameter))
+        self.logger.debug('current_circumference: {}'.format(self.current_circumference))
+        self.logger.debug('inches per step: {}'.format(self.inches_per_step))
+        self.logger.debug('revs to complete: {}'.format(self.total_revs_to_complete))
+        self.logger.debug('steps to complete: {}'.format(self.total_steps_to_complete))
+
+    def update(self):
+        self.steps_completed += 1
+        self.total_inches_moved += self.inches_per_step
+        self.num_revs_completed = self.get_num_revs_completed()
+        self.current_diameter = self.get_current_diameter()
+        self.current_circumference = self.get_current_circumference()
+        self.inches_per_step = self.get_inches_per_step()
+        self.total_revs_to_complete = self.get_total_num_revs()
+        self.total_steps_to_complete = self.get_total_num_steps()
+        self.print_attrs()
+
+    def _run(self):
+        '''debug purposes only'''
+        waiter = Wait()
+
+        for i in range(int(self.total_steps_to_complete)):
+            self.update()
+            print()
+            # waiter.wait_til(1)
+
+
+if __name__ == '__main__':
+    push = PaperPusher()
+    push._run()
