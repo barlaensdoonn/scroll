@@ -98,6 +98,10 @@ class Compute:
         the # of inches of paper that move with each step of the motor is equal
         to the current circumference divided by # of steps per full revolution
         '''
+        return self.current_circumference / self.steps_per_revolution
+
+    def get_inches_per_geared_step(self):
+        '''same as get_inches_per_step() but with the gear ratio applied'''
         return self.current_circumference / self.geared_steps_per_revolution
 
     def get_total_num_revs(self, radius_end=radius_end):
