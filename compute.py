@@ -1,12 +1,19 @@
 #!/usr/bin/python3
-# control speed of a stepper motor by mapping pause time
-# between steps to an arbitrary range of values
+# formulas to calculate properties of a roll of paper
+# and map them to stepper motor movements
 # 4/15/18
-# updated 5/5/18
+# updated 5/6/18
+
+'''
+a roll of paper is technically an Archimedean spiral, but since the paper's
+thickness is very small relative to its length, we can treat it as a roll
+of nested concentric circles. for a discussion of the problem see this link:
+https://web.archive.org/web/20131103150639/http://mtl.math.uiuc.edu/special_presentations/JoansPaperRollProblem.pdf
+'''
 
 import logging
 from math import pi
-from wait import Wait
+from time import sleep
 
 
 class Compute:
@@ -15,7 +22,8 @@ class Compute:
     core_diameter = 4
     paper_thickness = 0.0062
     diameter_start = 47.5  # starting with ~4' diameter
-    diameter_end = diameter_start / 2  # we want to move half the roll by the end
+    # diameter_end = diameter_start / 2  # we want to move half the roll by the end
+    diameter_end = core_diameter
 
     # motor constants
     steps_per_revolution = 200
@@ -87,7 +95,7 @@ class Compute:
 
     def print_attrs(self):
         print('steps completed: {}'.format(self.steps_completed))
-        print('total inches moved: {}'.format(self.steps_completed))
+        print('total inches moved: {}'.format(self.total_inches_moved))
         print('revolutions completed: {}'.format(self.num_revs_completed))
         print('current diameter: {}'.format(self.current_diameter))
         print('current circumference: {}'.format(self.current_circumference))
@@ -97,7 +105,7 @@ class Compute:
 
     def log_attrs(self):
         self.logger.debug('steps completed: {}'.format(self.steps_completed))
-        self.logger.debug('total inches moved: {}'.format(self.steps_completed))
+        self.logger.debug('total inches moved: {}'.format(self.total_inches_moved))
         self.logger.debug('revolutions completed: {}'.format(self.num_revs_completed))
         self.logger.debug('current_diameter: {}'.format(self.current_diameter))
         self.logger.debug('current_circumference: {}'.format(self.current_circumference))
@@ -122,6 +130,7 @@ class Compute:
         for i in range(int(self.total_steps_to_complete)):
             self.update()
             print()
+            # sleep(0.5)
 
 
 if __name__ == '__main__':
