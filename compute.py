@@ -7,7 +7,9 @@
 '''
 a roll of paper is technically an Archimedean spiral, but since the paper's
 thickness is very small relative to its length, we can treat it as a roll
-of nested concentric circles. for a discussion of the problem see this link:
+of nested concentric circles, as we do in Compute.get_total_num_revs()
+
+for a discussion of the problem see this link:
 https://web.archive.org/web/20131103150639/http://mtl.math.uiuc.edu/special_presentations/JoansPaperRollProblem.pdf
 '''
 
@@ -22,8 +24,7 @@ class Compute:
     core_diameter = 4
     paper_thickness = 0.0062
     diameter_start = 47.5  # starting with ~4' diameter
-    # diameter_end = diameter_start / 2  # we want to move half the roll by the end
-    diameter_end = core_diameter
+    diameter_end = diameter_start / 2  # we want to move half the roll by the end
 
     # motor constants
     steps_per_revolution = 200
@@ -31,7 +32,6 @@ class Compute:
     max_inches_per_move = 10  # max # of inches that can move based on the travel of the idler arm
 
     def __init__(self):
-        # TODO: add total_inches_to_move, total_inches_moved
         # self.logger = self._init_logger()
         self.steps_completed = 0
         self.total_inches_moved = 0
@@ -54,8 +54,8 @@ class Compute:
 
     def get_num_revs_completed(self):
         '''
-        # of revolutions compelted is # of steps completed
-        divided by number of steps per revolution
+        # of revolutions completed is # of steps completed
+        divided by # of steps per revolution
         '''
         return self.steps_completed / self.steps_per_revolution
 
@@ -80,18 +80,39 @@ class Compute:
         '''
         return self.current_circumference / self.steps_per_revolution
 
-    def get_total_num_revs(self):
+    def get_total_num_revs(self, diameter_end=diameter_end):
         '''
         total number of revolutions to complete should be the difference between
-        the starting diameter and ending diameter divided by the width of the paper
+        the starting radius and ending radius divided by the width of the paper.
+        if we set diameter_end to core_diameter, this is equivalent to
+        the # of nested concentric circles that the roll contains.
         '''
-        return (self.current_diameter - self.diameter_end) / self.paper_thickness
+        return ((self.current_diameter / 2) - (diameter_end / 2)) / self.paper_thickness
 
     def get_total_num_steps(self):
         '''
         total # of steps is total # of revolutions times steps per revolution
         '''
         return self.total_revs_to_complete * self.steps_per_revolution
+
+    def get_total_num_layers(self):
+        '''
+        total # of layers - or nested concentric circles - of paper on the roll
+        is equal to the # of revolutions required to unravel the roll
+        '''
+        return self.get_total_num_revs(diameter_end=self.core_diameter)
+
+    def get_total_linear_inches(self):
+        '''
+        if we treat the roll as a series of nested concentric circles, then
+        the total linear inches of paper on the roll is the average layer length
+        times the total # of layers of paper. the average layer length is the
+        circumference of the average diameter
+        '''
+        average_diameter = (self.diameter_start + self.core_diameter) / 2
+        average_layer_length = self._get_circumference(average_diameter)
+
+        return self.get_total_num_layers() * average_layer_length
 
     def print_attrs(self):
         print('steps completed: {}'.format(self.steps_completed))
