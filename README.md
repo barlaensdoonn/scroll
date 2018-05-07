@@ -1,4 +1,7 @@
 # scroll
+## control software for Janet Zweig's public art piece to be installed at the new San Diego public library Mission Hill/Hillcrest branch
+
+![scrolls](scrolls.jpg)
 
 ## dependencies
 #### *pyyaml*
