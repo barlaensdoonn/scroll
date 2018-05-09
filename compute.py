@@ -6,6 +6,7 @@
 
 import logging
 from math import pi
+from datetime import datetime
 
 
 class Compute:
@@ -180,14 +181,21 @@ class Compute:
         self.inches_per_step = self.get_inches_per_step()
         self.inches_per_geared_step = self.get_inches_per_geared_step()
 
-    def _run(self):
+    def run(self):
         '''debug purposes only'''
+        start = datetime.now()
+
         for i in range(int(self.total_geared_steps_to_complete)):
             self.update()
             self.print_attrs()
             print()
 
+        end = datetime.now()
+        elapsed = end - start
+        print('\nstarted process at {}'.format(start))
+        print('process completed at {}'.format(end))
+        print('total time elapsed: {}'.format(elapsed))
 
 if __name__ == '__main__':
     push = Compute(target_diameter=Compute.core_diameter)
-    push._run()
+    push.run()
