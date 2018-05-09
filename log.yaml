@@ -12,17 +12,19 @@ formatters:
 handlers:
     console:
         class: logging.StreamHandler
-        level: INFO
+        level: DEBUG
         formatter: console
         stream: ext://sys.stdout
     file:
-        class: logging.FileHandler
-        level: INFO
+        class: logging.handlers.RotatingFileHandler
+        level: DEBUG
         formatter: file
+        maxBytes: 104857600
+        backupCount: 2
 
 loggers:
     compute:
-        level: INFO
+        level: DEBUG
         handlers: [file]
         propogate: False
     data:
