@@ -183,8 +183,8 @@ class Compute:
         '''debug purposes only'''
         for i in range(int(self.total_geared_steps_to_complete)):
             self.update()
-            self.log_attrs()
-            # print()
+            self.print_attrs()
+            print()
 
 
 if __name__ == '__main__':
