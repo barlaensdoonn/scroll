@@ -125,9 +125,10 @@ class Compute:
 
     def get_total_num_steps(self):
         '''
-        total # of steps is total # of revolutions times steps per revolution
+        total # of steps to complete is total # of revolutions times
+        geared steps per revolution
         '''
-        return self.total_revs_to_complete * self.steps_per_revolution
+        return self.total_revs_to_complete * self.geared_steps_per_revolution
 
     def get_total_linear_inches(self):
         '''
