@@ -151,6 +151,16 @@ class Compute:
         print('inches per step: {}'.format(self.inches_per_step))
         print('inches per geared step: {}'.format(self.inches_per_geared_step))
 
+    def log_attrs(self):
+        '''debug purposes only'''
+        self.logger.debug('steps completed: {}'.format(self.steps_completed))
+        self.logger.debug('total inches moved: {}'.format(self.total_inches_moved))
+        self.logger.debug('revolutions completed: {}'.format(self.num_revs_completed))
+        self.logger.debug('current radius: {}'.format(self.current_radius))
+        self.logger.debug('current circumference: {}'.format(self.current_circumference))
+        self.logger.debug('inches per step: {}'.format(self.inches_per_step))
+        self.logger.debug('inches per geared step: {}'.format(self.inches_per_geared_step))
+
     def print_totals(self):
         '''debug purposes only'''
         print('total # of layers: {}'.format(self.total_num_layers))
@@ -173,8 +183,8 @@ class Compute:
         '''debug purposes only'''
         for i in range(int(self.total_geared_steps_to_complete)):
             self.update()
-            self.print_attrs()
-            print()
+            self.log_attrs()
+            # print()
 
 
 if __name__ == '__main__':
