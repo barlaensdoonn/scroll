@@ -16,7 +16,7 @@ sudo apt-get install python3-gpiozero
 ```
 
 ## real time clock
-currently using the [RasPi DS1307 RTC-I2C HAT] from Nation Electronics(http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html)
+currently using the [RasPi DS1307 RTC-I2C HAT](http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html) from Nation Electronics
 
 instructions from their website:
 run ```sudo raspi-config``` and enable I2C in "Advanced Options", then reboot
