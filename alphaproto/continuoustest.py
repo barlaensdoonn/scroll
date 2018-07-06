@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+# authored by Gary Stein at AlphaProto June 2018
+# refactored for python 3 by Brandon Aleson July 2018
+# updated 7/6/18
+
 import sys
 import time
 import stepperweblib
@@ -19,18 +24,18 @@ feed_circumference = pi * feed_diameter
 take_circumference = pi * take_diameter
 
 #  Movement in inches linearly
-MoveLength = 12
+move_length = 12
 
-feed_ticks = MoveLength / feed_circumference * ticksperrev * feed_direction
-take_ticks = MoveLength / take_circumference * ticksperrev * take_direction
+feed_ticks = move_length / feed_circumference * ticksperrev * feed_direction
+take_ticks = move_length / take_circumference * ticksperrev * take_direction
 print("feed ticks: {}   take ticks: {}".format(feed_ticks, take_ticks))
 
 #  Calc a velocity based on radius? in inches per minute
-LinearVelocity = 5
+linear_velocity = 5
 #  Make Velocity is 250 (about 5.6 on smaller side)
 max_velocity = 250
-feed_velocity = LinearVelocity / feed_circumference * ticksperrev / 60
-take_velocity = LinearVelocity / take_circumference * ticksperrev / 60
+feed_velocity = linear_velocity / feed_circumference * ticksperrev / 60
+take_velocity = linear_velocity / take_circumference * ticksperrev / 60
 
 if feed_velocity > max_velocity:
     feed_velocity = max_velocity
@@ -64,8 +69,8 @@ while True:
     # feed state machine
     if feed_state == 0:
         # doing nothing, waiting for button
-        feed.MotorHalt()
-        button = feed.CheckFlag()
+        feed.motor_halt()
+        button = feed.check_flag()
         # button pressed, move to button state
         # Using momentary (logic reversed)
         take_up = 0
@@ -73,35 +78,35 @@ while True:
             feed_state = 1
     elif feed_state == 1:
         # check if button released
-        button = feed.CheckFlag()
+        button = feed.check_flag()
         if button == 1:
             feed_state = 2
             # move at the same time
             take_up = 1
-            feed.MoveRelative(feed_velocity, feed_ticks)
+            feed.move_relative(feed_velocity, feed_ticks)
     elif feed_state == 2:
         # moving check if done
-        done = feed.CheckReached()
+        done = feed.check_reached()
         # when done, stop motor, go to idle
         if done == 1:
-            feed.MotorHalt()
+            feed.motor_halt()
             feed_state = 0
 
     if take_state == 0:
         # doing nothing, waiting for command from feed
-        take.MotorHalt()
+        take.motor_halt()
 
         # command move out of idle to slack
         if take_up == 1:
             take_state = 1
     elif take_state == 1:
         # waiting for slack
-        take.MotorHalt()
-        tension = take.CheckFlag()
+        take.motor_halt()
+        tension = take.check_flag()
         # if there is slack move
         if tension == 0:
             take_state = 2
-            take.MoveRelative(take_velocity, take_ticks)
+            take.move_relative(take_velocity, take_ticks)
         # if there is slack, and feed motor isn't moving
         # then go back to idle (already halted)
         elif take_up == 0:
@@ -109,10 +114,10 @@ while True:
 
     elif take_state == 2:
         # When tension is made, stop
-        tension = take.CheckFlag()
+        tension = take.check_flag()
         # might happen multiple times
         if tension == 1:
-            take.MotorHalt()
+            take.motor_halt()
             take_state = 1
 
     count = count + 1

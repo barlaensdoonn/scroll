@@ -1,3 +1,8 @@
+#!/usr/bin/python3
+# authored by Gary Stein at AlphaProto June 2018
+# refactored for python 3 by Brandon Aleson July 2018
+# updated 7/6/18
+
 import sys
 import time
 import stepperweblib
@@ -19,13 +24,13 @@ feed_circumference = pi * feed_diameter
 take_circumference = pi * take_diameter
 
 # Movement in inches linearly
-MoveLength = 12
+move_length = 12
 # How much to move per tick / tock
 MoveSteps = 4
 
 # only move distance of tick / tock will be recalculated as needed
-feed_ticks = MoveLength / feed_circumference * ticksperrev * feed_direction
-take_ticks = MoveLength / take_circumference * ticksperrev * take_direction
+feed_ticks = move_length / feed_circumference * ticksperrev * feed_direction
+take_ticks = move_length / take_circumference * ticksperrev * take_direction
 print("feed ticks: {}   take ticks: {}".format(feed_ticks, take_ticks))
 
 # Calc a velocity based on radius? in inches per minute
@@ -54,69 +59,69 @@ take = stepperweblib.StepperControl("10.0.1.71")
 # 3 = Move in Slack (stop when done, back to move
 state = 0
 
-MoveLeft = 0
+move_left = 0
 count = 0
 while True:
     # state machine
     if state == 0:
         # doing nothing, waiting for button
-        feed.MotorHalt()
-        take.MotorHalt()
+        feed.motor_halt()
+        take.motor_halt()
 
-        button = feed.CheckFlag()
+        button = feed.check_flag()
         # button pressed, move to button state
         # Using momentary (logic reversed)
         if(button == 0):
             state = 1
             # Store the total movement
-            MoveLeft = MoveLength
+            move_left = move_length
     elif state == 1:
         # check if button released
-        button = feed.CheckFlag()
+        button = feed.check_flag()
         if(button == 1):
             state = 2
             CurrLength = 0
             # Will moves in ticks
-            if MoveLeft > MoveSteps:
+            if move_left > MoveSteps:
                 CurrLength = MoveSteps
-                MoveLeft = MoveLeft - MoveSteps
+                move_left = move_left - MoveSteps
             else:
-                CurrLength = MoveLeft
-                MoveLeft = 0
+                CurrLength = move_left
+                move_left = 0
             # Calculate ticks base on tick of whats left of a tick
             feed_ticks = CurrLength / feed_circumference * ticksperrev * feed_direction
             take_ticks = CurrLength / take_circumference * ticksperrev * take_direction
             # Do Actual movement
-            feed.MoveRelative(feed_velocity, feed_ticks)
+            feed.move_relative(feed_velocity, feed_ticks)
 
     elif state == 2:
         # moving check if done
-        done = feed.CheckReached()
+        done = feed.check_reached()
         # when done, stop motor
         # start taking in slack
         if(done == 1):
-            feed.MotorHalt()
+            feed.motor_halt()
             state = 3
             # Move in either ticks or what is left (has some overage)
-            take.MoveRelative(take_velocity, take_ticks)
+            take.move_relative(take_velocity, take_ticks)
 
     elif state == 3:
         # check to see if tensioned
 
         # When tension is made, stop
-        tension = take.CheckFlag()
+        tension = take.check_flag()
         # Happens once per tick / tock
         if tension == 1:
-            take.MotorHalt()
+            take.motor_halt()
             # if there is more ticks, do another
-            if MoveLeft > 0:
+            if move_left > 0:
                 state = 1
             # if there are no more, go to idle
             else:
                 state = 0
 
     count = count + 1
-    print("count: {}   state: {}   left: {}".format(count, state, MoveLeft))
+    print("count: {}   state: {}   left: {}".format(count, state, move_left))
 
     sys.stdout.flush()
     time.sleep(.1)
