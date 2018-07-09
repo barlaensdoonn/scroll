@@ -102,32 +102,32 @@ class StepperComms:
 
 
 class StepperControl:
-    ControlWord = 0x6040
-    StatusWord = 0x6041
-    ProfileVelocity = 0x6081
-    TargetPosition = 0x607A
-    Inputs = 0x60FD
-    ActualPosition = 0x6064
-    OperatingMode = 0x6060
-    InputVoltageRange = 0x3240
+    control_world = 0x6040
+    status_word = 0x6041
+    profile_velocity = 0x6081
+    target_position = 0x607A
+    inputs = 0x60FD
+    actual_position = 0x6064
+    operating_mode = 0x6060
+    input_voltage_range = 0x3240
 
     def __init__(self, host):
         self.host = host
         # Create comms
         self.comms = StepperComms()
         # Set Input 1 to 24 Volt Range
-        self.comms.set_register(self.host, self.InputVoltageRange, 0x06, 1, self.comms.typeU32)
+        self.comms.set_register(self.host, self.input_voltage_range, 0x06, 1, self.comms.typeU32)
         # Set As Position Mode
-        self.comms.set_register(self.host, self.OperatingMode, 0x00, 1, self.comms.typeU08)
+        self.comms.set_register(self.host, self.operating_mode, 0x00, 1, self.comms.typeU08)
 
     # Speed between 0 and 250 (positive only)
     # Already ramps up and down, max speed
     # Position negative and positive
     def move_relative(self, Speed, Steps):
         # Set speed as unsigned number
-        self.comms.set_register(self.host, self.ProfileVelocity, 0, Speed, self.comms.typeU32)
+        self.comms.set_register(self.host, self.profile_velocity, 0, Speed, self.comms.typeU32)
         # Set relative position in ticks (25000 = 1 revolution of motor shaft)
-        self.comms.set_register(self.host, self.TargetPosition, 0, Steps, self.comms.typeS32)
+        self.comms.set_register(self.host, self.target_position, 0, Steps, self.comms.typeS32)
 
         # Bit 4 start
         # Bit 5 immediate
@@ -137,31 +137,31 @@ class StepperControl:
         # must be moved to completely
 
         # Quick Stop, Enable Voltage
-        self.comms.set_register(self.host, self.ControlWord, 0, 0x06, self.comms.typeU16)
+        self.comms.set_register(self.host, self.control_world, 0, 0x06, self.comms.typeU16)
         # Switch On
-        self.comms.set_register(self.host, self.ControlWord, 0, 0x07, self.comms.typeU16)
+        self.comms.set_register(self.host, self.control_world, 0, 0x07, self.comms.typeU16)
         # Enable Operation, Set Relative Motion
-        self.comms.set_register(self.host, self.ControlWord, 0, 0x4F, self.comms.typeU16)
+        self.comms.set_register(self.host, self.control_world, 0, 0x4F, self.comms.typeU16)
         # Start
-        self.comms.set_register(self.host, self.ControlWord, 0, 0x5F, self.comms.typeU16)
+        self.comms.set_register(self.host, self.control_world, 0, 0x5F, self.comms.typeU16)
 
     # Halt and clear everything?
     def motor_halt(self):
-        self.comms.set_register(self.host, self.ControlWord, 0, 0x1000, self.comms.typeU16)
+        self.comms.set_register(self.host, self.control_world, 0, 0x1000, self.comms.typeU16)
 
     def check_reached(self):
         # In status? 0x6041
         # Bit 10 Target Reached
         # Bit 12 Point Acknowledged
 
-        reach = self.comms.get_register(self.host, self.StatusWord, 0)
+        reach = self.comms.get_register(self.host, self.status_word, 0)
         if reach & 0x0400:
             return 1
         else:
             return 0
 
     def check_flag(self):
-        flag = self.comms.get_register(self.host, self.Inputs, 0)
+        flag = self.comms.get_register(self.host, self.inputs, 0)
         # print flag
         if flag & 0x10000 == 0:
             return 1
