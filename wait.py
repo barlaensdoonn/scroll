@@ -1,7 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # class to calculate time to wait until some point in the future
 # 5/3/18
-# updated 5/3/18
+# updated 8/3/18
 
 import logging
 from time import sleep

@@ -1,7 +1,9 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # load sea level data from csv
 # 4/16/18
-# updated 4/26/18
+# updated 8/3/18
+
+# TODO: fix logging
 
 import csv
 import logging
@@ -10,10 +12,11 @@ from collections import OrderedDict
 
 class Data:
 
-    data_path = '/home/pi/gitbucket/scroll/yearly_sea_level_maxes.csv'
+    pi_data_path = '/home/pi/gitbucket/scroll/yearly_sea_level_maxes.csv'
 
-    def __init__(self):
+    def __init__(self, data_path=pi_data_path):
         self.logger = self._init_logger()
+        self.data_path = data_path
         self.data = self._load_data()
         self.years = [year for year in self.data.keys()]
         self.max_feets = [float(value) for value in self.data.values()]
@@ -51,4 +54,5 @@ class Data:
 
     def print_data(self):
         for datapoint in self.data:
-            self.logger.info('year: {}   max_sea_level_feet: {}'.format(datapoint, self.data[datapoint]))
+            print('year: {}   max_sea_level_feet: {}'.format(datapoint, self.data[datapoint]))
+            # self.logger.info('year: {}   max_sea_level_feet: {}'.format(datapoint, self.data[datapoint]))

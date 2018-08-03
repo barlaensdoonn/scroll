@@ -6,13 +6,13 @@ control software for Janet Zweig's public art piece to be installed at the new S
 ## dependencies
 #### *pyyaml*
 ```
-sudo pip3 install pyyaml
+sudo pip install pyyaml
 ```
 
 #### *gpiozero*
 ```
 sudo apt-get update
-sudo apt-get install python3-gpiozero
+sudo apt-get install python-gpiozero
 ```
 
 ## real time clock
