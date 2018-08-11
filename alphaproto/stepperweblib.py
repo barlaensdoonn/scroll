@@ -184,8 +184,10 @@ class StepperControl:
 
         def get_status(self):
             v = self.comms.get_register(self.host, self.StatusWord, 0)
-            print "%04X" % (v)
+            # print "%04X" % (v)
+            print(v)
 
         def get_closed(self):
             v = self.comms.get_register(self.host, self.ClosedLoop, 0)
-            print "%04X" % (v)
+            # print "%04X" % (v)
+            print(v)

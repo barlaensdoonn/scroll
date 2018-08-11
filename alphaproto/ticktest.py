@@ -48,8 +48,8 @@ if(take_velocity > max_velocity):
 print("feed velocity: {}, take velocity: {}".format(feed_velocity, take_velocity))
 
 # Create connects to motor controllers
-feed = stepperweblib.StepperControl("10.0.1.70")
-take = stepperweblib.StepperControl("10.0.1.71")
+feed = stepperweblib.StepperControl("10.0.0.59")
+take = stepperweblib.StepperControl("10.0.0.62")
 
 # single state machine
 # 0 = idle
