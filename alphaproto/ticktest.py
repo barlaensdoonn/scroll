@@ -29,7 +29,7 @@ MoveSteps = 4
 feed_ticks = MoveLength / feed_circumference * ticksperrev * feed_direction
 take_ticks = MoveLength / take_circumference * ticksperrev * take_direction * take_overage
 
-print "Ticks: ", feed_ticks, take_ticks
+print("feed ticks: {}, take ticks: {}".format(feed_ticks, take_ticks))
 
 # Calc a velocity based on radius?
 # in inches per minute
@@ -45,7 +45,7 @@ if(feed_velocity > max_velocity):
 if(take_velocity > max_velocity):
     take_velocity = max_velocity
 
-print "Velocity: ", feed_velocity, take_velocity
+print("feed velocity: {}, take velocity: {}".format(feed_velocity, take_velocity))
 
 # Create connects to motor controllers
 feed = stepperweblib.StepperControl("10.0.1.70")
@@ -126,7 +126,7 @@ while True:
                 state = 0
 
     count += 1
-    print "Count: ", count, " State: ", state,  " Left: ", MoveLeft
+    print("count: {}, state: {}, left: {}".format(count, state, MoveLeft))
 
     sys.stdout.flush()
     time.sleep(.1)
