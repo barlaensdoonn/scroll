@@ -1,18 +1,18 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 # control speed of a stepper motor by mapping pause time
 # between steps to an arbitrary range of values
 # 4/15/18
-# updated 5/3/18
+# updated 8/10/18
 
 import os
 import yaml
 import logging
 import logging.config
-from gpiozero import Button
 from socket import gethostname
+from datetime import datetime, timedelta
+import stepperweblib
 from data import Data
 from wait import Wait
-from stepper import Stepper
 
 
 def _get_logfile_name(basepath, hostname):
@@ -48,70 +48,44 @@ def configure_logger(basepath, hostname):
     return _init_logger()
 
 
-def init_limit_switch():
-    switch_pin = 12
-    switch = Button(switch_pin)
-    switch.when_pressed = lambda: logger.info('limit switch engaged')
+def initialize_motors(feed_ip, eat_ip):
+    motors = [stepperweblib.StepperControl(ip) for ip in [feed_ip, eat_ip]]
 
-    return switch
+    for motor in motors:
+        motor.motor_halt()
 
-
-def init_steppers():
-    pins = {
-        'clockwise': [4, 17, 27, 22],
-        'counter-clockwise': [5, 6, 13, 19]
-    }
-
-    steppers = {
-        'let_out': Stepper(pins['clockwise'], direction='clockwise', logger_name='stepper-let_out'),
-        'take_up': Stepper(pins['counter-clockwise'], direction='counter-clockwise', logger_name='stepper-take_up')
-    }
-
-    return steppers
-
-
-def move(stepper, num_steps, pause):
-    logger.info('moving {} stepper {} steps'.format(stepper, num_steps))
-
-    for i in range(num_steps):
-        steppers[stepper].step(pause)
-
-
-def increment_to_limit(stepper, pause, switch):
-    logger.info('incrementing {} stepper by one step until limit switch is engaged'.format(stepper))
-
-    while not switch.is_pressed:
-        steppers[stepper].step(pause)
+    return motors[0], motors[1]
 
 
 if __name__ == '__main__':
     logger = configure_logger(get_basepath(), get_hostname())
     waiter = Wait()
-    switch = init_limit_switch()
+    feed_ip, eat_ip = '10.0.0.59', '10.0.0.62'
+    feed, eat = initialize_motors(feed_ip, eat_ip)
 
-    # NOTE: instead of max_steps_per_move being a constant, the # of steps
-    # per movement event will be dynamically calculated based on
-    # the current circumference of the roll
-    steppers = init_steppers()
-    max_steps_per_move = 10
+    today = datetime.today()
+    tomorrow = today + timedelta(days=1)
+    waiter.wait_til(tomorrow)
 
-    # intialize data and convert original datapoints
-    # into a range of pause values to use between motor steps
-    my_data = Data()
-    pauses = my_data.translate(new_min=0.1, new_max=0.005)
+    movements = ['08:10:18:19:14:00', '08:10:18:19:12:00', '08:10:18:19:10:00']
 
-    # step through the list of pause values
-    for i in range(len(pauses)):
-        logger.info('year = {}   feet = {}   pause = {}'.format(my_data.years[i], my_data.max_feets[i], pauses[i]))
+    while movements:
+        movement = movements.pop()
+        waiter.wait_til(movement)
 
-        # move the first motor a number of steps to let out paper
-        move('let_out', max_steps_per_move, pauses[i])
-        waiter.wait_til(1)
+        feed.move_relative(200, 25000)
+        while True:
+            if feed.check_reached():
+                feed.motor_halt()
+                logger.info('feed motor movement finished')
+                break
 
-        # move the take up motor a smaller number of steps than the first motor
-        # to account for differences in winding tightness
-        move('take_up', int(max_steps_per_move * 0.8), pauses[i])
-
-        # increment stepper until limit switch is engaged
-        increment_to_limit('take_up', pauses[i], switch)
-        waiter.wait_til(1)
+        eat_steps = 25000 - 5000
+        eat.move_relative(200, eat_steps)
+        while True:
+            if eat.check_reached():
+                if not eat.check_flag():
+                    eat.motor_halt()
+                    logger.info('eat motor movement finished')
+                    break
+                eat.move_relative(1, 1)
