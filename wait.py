@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # class to calculate time to wait until some point in the future
 # 5/3/18
-# updated 8/3/18
+# updated 8/10/18
 
 import logging
 from time import sleep
@@ -36,6 +36,8 @@ class Wait:
 
     def _parse(self, next_time):
         '''
+        if next_time is already a datetime object, pass it on through.
+
         if next_time is a single field, treat it as an int representing seconds
         from now til some point in the future. attempt to add it to datetime.now()
         and return it.
@@ -46,19 +48,22 @@ class Wait:
         both int(next_time) and datetime.strptime(next_time, self.format) will
         throw ValueError if they fail due to bad arguments.
         '''
-        next_time = str(next_time)
-        check = self._check_len(next_time)
+        if type(next_time) == datetime:
+            return next_time
+        else:
+            next_time = str(next_time)
+            check = self._check_len(next_time)
 
-        try:
-            if check == 1:
-                return datetime.now() + timedelta(seconds=int(next_time))
-            elif check == 3:
-                today = datetime.today().strftime('%m:%d:%y')
-                next_time = ':'.join([today, next_time])
-            return datetime.strptime(next_time, self.format)
-        except ValueError:
-            self.logger.error('improperly formatted input, cannot convert to datetime object')
-            return None
+            try:
+                if check == 1:
+                    return datetime.now() + timedelta(seconds=int(next_time))
+                elif check == 3:
+                    today = datetime.today().strftime('%m:%d:%y')
+                    next_time = ':'.join([today, next_time])
+                return datetime.strptime(next_time, self.format)
+            except ValueError:
+                self.logger.error('improperly formatted input, cannot convert to datetime object')
+                return None
 
     def _is_future(self, next_time):
         '''check that next_time is in the future'''
