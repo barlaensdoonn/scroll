@@ -63,11 +63,11 @@ if __name__ == '__main__':
     feed_ip, eat_ip = '10.0.0.59', '10.0.0.62'
     feed, eat = initialize_motors(feed_ip, eat_ip)
 
-    today = datetime.today()
-    tomorrow = today + timedelta(days=1)
-    waiter.wait_til(tomorrow)
+    # today = datetime.today()
+    # tomorrow = today + timedelta(days=1)
+    # waiter.wait_til(tomorrow)
 
-    movements = ['08:10:18:19:14:00', '08:10:18:19:12:00', '08:10:18:19:10:00']
+    movements = ['08:11:18:12:09:00', '08:11:18:12:08:30', '08:11:18:12:08:00']
 
     while movements:
         movement = movements.pop()

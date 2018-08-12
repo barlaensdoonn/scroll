@@ -3,7 +3,7 @@
 # formulas to calculate properties of a roll of paper
 # and map them to geared stepper motor movements
 # 4/15/18
-# updated 8/3/18
+# updated 8/11/18
 
 import logging
 from math import pi
@@ -21,11 +21,12 @@ class Compute:
 
     there are two approaches for calculating the target diameter in this case:
     1. target_diameter equals half the entire roll's diameter. this will end up
-       moving more than half the total paper on the roll since the inner support
-       core of the roll contains no paper. this is the approach taken below.
-    2. if instead we want to move precisely half the paper on the roll, we would
-       calculate target_diameter based on how many revolutions it would take
-       to move exactly half the linear feet of paper on the roll.
+       moving more than half the total paper on the roll since more paper is moved
+       per revolution at higher diameters. also the inner support core of the roll
+       contains no paper.
+    2. move precisely half the paper on the roll by calculating the target_diameter
+       based on how many revolutions it would take to move exactly half
+       the linear feet of paper on the roll.
     '''
 
     # paper constants - measurement units are inches
@@ -37,7 +38,7 @@ class Compute:
     initial_radius = initial_diameter / 2
 
     # motor constants
-    steps_per_revolution = 200  # step angle of 1.8deg
+    steps_per_revolution = 25000
     gear_ratio = 10 / 1
     geared_steps_per_revolution = steps_per_revolution * gear_ratio
     total_num_of_movements = 365 * 50  # 365 days times 50 years (placeholder, currently unknown)
@@ -144,6 +145,22 @@ class Compute:
 
         return self.get_total_num_layers() * average_layer_length
 
+    def calculate_steps_per_inches(self, inches_to_move=max_inches_per_move):
+        '''calculate # of geared steps to move some # of inches'''
+        starting_steps = self.steps_completed
+        target_inches = self.total_inches_moved + inches_to_move
+
+        while self.total_inches_moved <= target_inches:
+            self.steps_completed += 1
+            self.total_inches_moved += self.inches_per_geared_step
+            self.num_revs_completed = self.get_num_revs_completed()
+            self.current_radius = self.get_current_radius()
+            self.current_circumference = self.get_current_circumference()
+            self.inches_per_step = self.get_inches_per_step()
+            self.inches_per_geared_step = self.get_inches_per_geared_step()
+
+        return self.steps_completed - starting_steps
+
     def print_attrs(self):
         '''debug purposes only'''
         print('steps completed: {}'.format(self.steps_completed))
@@ -173,7 +190,7 @@ class Compute:
         print('total steps to complete: {}'.format(self.total_steps_to_complete))
         print('total geared steps to complete: {}'.format(self.total_geared_steps_to_complete))
 
-    def update(self):
+    def update_sim(self):
         self.steps_completed += 1
         self.total_inches_moved += self.inches_per_geared_step
         self.num_revs_completed = self.get_num_revs_completed()
@@ -182,12 +199,12 @@ class Compute:
         self.inches_per_step = self.get_inches_per_step()
         self.inches_per_geared_step = self.get_inches_per_geared_step()
 
-    def run(self):
+    def run_simulation(self):
         '''debug purposes only'''
         start = datetime.now()
 
         for i in range(int(self.total_geared_steps_to_complete)):
-            self.update()
+            self.update_sim()
             self.print_attrs()
             print('')
 
@@ -200,4 +217,4 @@ class Compute:
 
 if __name__ == '__main__':
     push = Compute(target_diameter=Compute.core_diameter)
-    push.run()
+    push.run_simulation()
