@@ -22,7 +22,7 @@ class Data:
         self.x, self.y = self.data[:,0], self.data[:,1]
         self.f = self._estimate_function()
         self.integrals = self._compute_discrete_integrals()
-        self.percents = self._calculate_percentages(datapoints=self.integrals)
+        self.percents = self.calculate_percentages(datapoints=self.integrals)
         # self.normalized_data = self._normalize_data()
 
     def _init_logger(self):
@@ -60,14 +60,12 @@ class Data:
         '''
         return [np.trapz([self.y[i], self.y[i + 1]], dx=1) for i in range(len(self.y)) if i < len(self.y) - 1]
 
-    def _calculate_percentages(self, datapoints=None):
+    def calculate_percentages(self, datapoints):
         '''return list of percentages of each y datapoint of the total y dataset'''
-        datapoints = self.y if not datapoints else datapoints
         return [datapoints[i] / sum(datapoints) * 100 for i in range(len(datapoints))]
 
-    def _normalize_data(self, datapoints=None):
+    def normalize_data(self, datapoints):
         '''return list of datapoints normalized between 0.0 - 1.0'''
-        datapoints = self.y if not datapoints else datapoints
         data_min = min(datapoints)
         data_range = max(datapoints) - data_min
 
