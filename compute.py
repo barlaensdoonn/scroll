@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # formulas to calculate properties of a roll of paper
-# and map them to geared stepper motor movements
+# and map them to stepper motor steps
 # 4/15/18
-# updated 8/11/18
+# updated 8/13/18
 
 import logging
 from math import pi
@@ -39,10 +39,8 @@ class Compute:
 
     # motor constants
     steps_per_revolution = 25000
-    gear_ratio = 10 / 1
-    geared_steps_per_revolution = steps_per_revolution * gear_ratio
     total_num_movements = 365 * 50  # 365 days times 50 years (placeholder, currently unknown)
-    max_inches_per_move = 10  # max inches that can move based on the travel of the idler arm (placeholder, currently unknown)
+    max_inches_per_move = 4  # max inches that can move based on the travel of the idler arm (placeholder, currently unknown)
 
     def __init__(self, target_diameter=(initial_diameter / 2)):
         '''
@@ -59,12 +57,10 @@ class Compute:
         self.current_radius = self.get_current_radius()
         self.current_circumference = self.get_current_circumference()
         self.inches_per_step = self.get_inches_per_step()
-        self.inches_per_geared_step = self.get_inches_per_geared_step()
 
         # these attrs mainly for testing, may be removed in the future
         self.total_revs_to_complete = self.get_total_num_revs(self.target_radius)
         self.total_steps_to_complete = self.get_total_num_steps()
-        self.total_geared_steps_to_complete = self.total_steps_to_complete * self.gear_ratio
         self.total_num_layers = self.get_total_num_layers()
         self.total_linear_inches = self.get_total_linear_inches()
 
@@ -83,7 +79,7 @@ class Compute:
         # of revolutions completed is # of steps completed
         divided by # of steps per revolution
         '''
-        return self.steps_completed / self.geared_steps_per_revolution
+        return self.steps_completed / self.steps_per_revolution
 
     def get_current_radius(self):
         '''
@@ -106,10 +102,6 @@ class Compute:
         '''
         return self.current_circumference / self.steps_per_revolution
 
-    def get_inches_per_geared_step(self):
-        '''same as get_inches_per_step() but with the gear ratio applied'''
-        return self.current_circumference / self.geared_steps_per_revolution
-
     def get_total_num_revs(self, target_radius):
         '''
         total number of revolutions to complete should be the difference between
@@ -129,7 +121,7 @@ class Compute:
     def get_total_num_steps(self):
         '''
         total # of steps to complete is total # of revolutions times
-        geared steps per revolution
+        steps per revolution
         '''
         return self.total_revs_to_complete * self.steps_per_revolution
 
@@ -146,18 +138,17 @@ class Compute:
         return self.get_total_num_layers() * average_layer_length
 
     def calculate_steps_per_inches(self, inches_to_move=max_inches_per_move):
-        '''calculate # of geared steps to move some # of inches'''
+        '''calculate # of steps to move some # of inches'''
         starting_steps = self.steps_completed
         target_inches = self.total_inches_moved + inches_to_move
 
         while self.total_inches_moved <= target_inches:
             self.steps_completed += 1
-            self.total_inches_moved += self.inches_per_geared_step
+            self.total_inches_moved += self.inches_per_step
             self.num_revs_completed = self.get_num_revs_completed()
             self.current_radius = self.get_current_radius()
             self.current_circumference = self.get_current_circumference()
             self.inches_per_step = self.get_inches_per_step()
-            self.inches_per_geared_step = self.get_inches_per_geared_step()
 
         return self.steps_completed - starting_steps
 
@@ -169,7 +160,6 @@ class Compute:
         print('current radius: {}'.format(self.current_radius))
         print('current circumference: {}'.format(self.current_circumference))
         print('inches per step: {}'.format(self.inches_per_step))
-        print('inches per geared step: {}'.format(self.inches_per_geared_step))
 
     def log_attrs(self):
         '''debug purposes only'''
@@ -179,7 +169,6 @@ class Compute:
         self.logger.debug('current radius: {}'.format(self.current_radius))
         self.logger.debug('current circumference: {}'.format(self.current_circumference))
         self.logger.debug('inches per step: {}'.format(self.inches_per_step))
-        self.logger.debug('inches per geared step: {}'.format(self.inches_per_geared_step))
 
     def print_totals(self):
         '''debug purposes only'''
@@ -188,24 +177,22 @@ class Compute:
         print('total linear feet of paper: {}'.format(self.total_linear_inches / 12))
         print('total revs to complete: {}'.format(self.total_revs_to_complete))
         print('total steps to complete: {}'.format(self.total_steps_to_complete))
-        print('total geared steps to complete: {}'.format(self.total_geared_steps_to_complete))
         print('total steps completed: {}'.format(self.steps_completed))
         print('total inches moved: {}'.format(self.total_inches_moved))
 
     def update_sim(self):
         self.steps_completed += 1
-        self.total_inches_moved += self.inches_per_geared_step
+        self.total_inches_moved += self.inches_per_step
         self.num_revs_completed = self.get_num_revs_completed()
         self.current_radius = self.get_current_radius()
         self.current_circumference = self.get_current_circumference()
         self.inches_per_step = self.get_inches_per_step()
-        self.inches_per_geared_step = self.get_inches_per_geared_step()
 
     def run_simulation(self):
         '''debug purposes only'''
         start = datetime.now()
 
-        for i in range(int(self.total_geared_steps_to_complete)):
+        for i in range(int(self.total_steps_to_complete)):
             self.update_sim()
             self.print_attrs()
             print('')
