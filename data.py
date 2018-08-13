@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # load data from csv and munge it some
 # 4/16/18
-# updated 8/12/18
-
-# TODO: fix logging
+# updated 8/13/18
 
 import csv
 import logging

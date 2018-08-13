@@ -1,8 +1,8 @@
 #!/usr/bin/python
-# control speed of a stepper motor by mapping pause time
-# between steps to an arbitrary range of values
+# control movement of a stepper motor by mapping discrete integrals of a dataset
+# to motor steps
 # 4/15/18
-# updated 8/10/18
+# updated 8/13/18
 
 import os
 import yaml
@@ -111,9 +111,8 @@ def eat_paper_with_increment(motor, steps=25000, speed=200):
 def sleep_tight(waiter):
     '''sleep until the next showdown tomorrow at high noon'''
     today = datetime.today()
-    tomorrow = today + timedelta(seconds=1)
-    # tomorrow = tomorrow.replace(hour=12, minute=0, second=0, microsecond=0)
-    # tomorrow = tomorrow.replace(day=12, hour=19, minute=31, second=0, microsecond=0)
+    tomorrow = today + timedelta(days=1)
+    tomorrow = tomorrow.replace(hour=12, minute=0, second=0, microsecond=0)
     waiter.wait_til(tomorrow)
 
 
