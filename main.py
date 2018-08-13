@@ -56,7 +56,7 @@ def initialize_motors(feed_ip=None, eat_ip=None):
     for motor in motors:
         motor.halt()
 
-    return motors[0], motors[1]
+    return (motors[0], motors[1])
 
 
 def feed_paper(motor, steps, speed=200):
@@ -91,28 +91,22 @@ def eat_paper(motor, steps=25000, speed=200):
             motor.move_relative(speed, steps)
 
 
-def eat_paper_with_increment(motor, steps=25000, speed=200):
-    '''
-    move motor certain # of steps, then increment 1 step until limit switch engaged.
-    this would be used if we precisely calculate # of steps to move eat motor each time.
-    '''
-    logger.info('moving eat motor {} steps'.format(steps))
-    motor.move_relative(speed, steps)
+def break_into_bites(meal, max_inches_per_bite=4):
+    numbites = int(meal / max_inches_per_bite)  # int() always rounds down
+    last_bite = meal % max_inches_per_bite
 
-    while True:
-        if not motor.check_flag():  # limit switch engaged == 0
-            motor.halt()
-            logger.info('limit switch engaged, motor halted')
-            break
-        if motor.check_reached():
-            motor.move_relative(1, 1)
+    bites = [4 for i in range(numbites)]
+    bites.append(last_bite)
+
+    return deque(bites)
 
 
 def sleep_tight(waiter):
     '''sleep until the next showdown tomorrow at high noon'''
     today = datetime.today()
-    tomorrow = today + timedelta(days=1)
-    tomorrow = tomorrow.replace(hour=12, minute=0, second=0, microsecond=0)
+    tomorrow = today + timedelta(seconds=0.01)
+    # tomorrow = today + timedelta(days=1)
+    # tomorrow = tomorrow.replace(hour=12, minute=0, second=0, microsecond=0)
     waiter.wait_til(tomorrow)
 
 
@@ -123,17 +117,26 @@ if __name__ == '__main__':
     ingredients = Data()
     kitchen = Compute()
 
-    meals = [ingredients.percents[i] * kitchen.total_geared_steps_to_complete for i in range(len(ingredients.percents))]
+    meals = [ingredients.percents[i] * kitchen.total_inches_to_move for i in range(len(ingredients.percents))]
     meals = deque(meals)
     steps_completed = 0
 
-    while meals:
-        meal = int(meals.popleft())
-        meal /= 100  # shrink the movement so we can test it effectively
-        feed_paper(feed, steps=meal)
-        steps_completed += abs(meal) * 100
-        eat_paper(eat, steps=250000)
+    for i in range(len(meals)):
+        meal = meals[i]
+        logger.info('eating meal {} of {}'.format(i, len(meals)))
+        bites = break_into_bites(meal)
+
+        for j in range(len(bites)):
+            bite = bites[i]
+            logger.info('eating bite {} of {} from meal {}'.format(j, len(bites), i))
+            steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
+            feed_paper(feed, steps=steps)
+            steps_completed += steps
+            # eat_paper(eat, steps=25000)
+
+        logger.info('finished meal {}, getting sleepy...'.format(i))
         sleep_tight(waiter)
 
-    logger.info('kitchen.total_geared_steps_to_complete: {}'.format(kitchen.total_geared_steps_to_complete))
+    logger.info('kitchen.total_steps_to_complete: {}'.format(kitchen.total_steps_to_complete))
+    logger.info('kitchen.steps_completed: {}'.format(kitchen.steps_completed))
     logger.info('actual steps completed: {}'.format(steps_completed))

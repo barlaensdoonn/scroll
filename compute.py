@@ -63,6 +63,7 @@ class Compute:
         self.total_steps_to_complete = self.get_total_num_steps()
         self.total_num_layers = self.get_total_num_layers()
         self.total_linear_inches = self.get_total_linear_inches()
+        self.total_inches_to_move = self.total_linear_inches / 2
 
     def _init_logger(self):
         logger = logging.getLogger('compute')
