@@ -9,11 +9,13 @@ control software for Janet Zweig's public art piece to be installed at the new S
 sudo pip install pyyaml
 ```
 
-#### *gpiozero*
+#### *scientific computing packages + dependencies*
 ```
-sudo apt-get update
-sudo apt-get install python-gpiozero
+sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev python-dev
+sudo pip install numpy
+sudo pip install scipy
 ```
+
 
 ## real time clock
 currently using the [RasPi DS1307 RTC-I2C HAT](http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html) from Nation Electronics
