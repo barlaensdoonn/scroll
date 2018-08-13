@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # class to calculate time to wait until some point in the future
 # 5/3/18
-# updated 8/10/18
+# updated 8/12/18
 
+import sys
 import logging
 from time import sleep
 from datetime import datetime, timedelta
@@ -109,5 +110,7 @@ class Wait:
             sleep(sleeps)
         else:
             self.logger.error('invalid input, unable to calculate wait time')
-            self.logger.warning('sleeping for 30 seconds instead')
-            self.wait_til(30)
+            self.logger.error('exiting...')
+            sys.exit()
+            # self.logger.warning('sleeping for 30 seconds instead')
+            # self.wait_til(30)
