@@ -41,7 +41,7 @@ class Compute:
     steps_per_revolution = 25000
     gear_ratio = 10 / 1
     geared_steps_per_revolution = steps_per_revolution * gear_ratio
-    total_num_of_movements = 365 * 50  # 365 days times 50 years (placeholder, currently unknown)
+    total_num_movements = 365 * 50  # 365 days times 50 years (placeholder, currently unknown)
     max_inches_per_move = 10  # max inches that can move based on the travel of the idler arm (placeholder, currently unknown)
 
     def __init__(self, target_diameter=(initial_diameter / 2)):
@@ -189,6 +189,8 @@ class Compute:
         print('total revs to complete: {}'.format(self.total_revs_to_complete))
         print('total steps to complete: {}'.format(self.total_steps_to_complete))
         print('total geared steps to complete: {}'.format(self.total_geared_steps_to_complete))
+        print('total steps completed: {}'.format(self.steps_completed))
+        print('total inches moved: {}'.format(self.total_inches_moved))
 
     def update_sim(self):
         self.steps_completed += 1
