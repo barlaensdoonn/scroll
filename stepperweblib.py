@@ -152,7 +152,7 @@ class StepperControl:
             self.comms.set_register(self.host, self.ControlWord, 0, 0x5F, self.comms.typeU16)
 
         # Halt and clear everything?
-        def motor_halt(self):
+        def halt(self):
             # Halt Free Spin
             # self.comms.set_register(self.host, self.ControlWord, 0, 0x1000, self.comms.typeU16)
             # Halt powered?

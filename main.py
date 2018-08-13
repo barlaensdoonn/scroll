@@ -52,9 +52,58 @@ def initialize_motors(feed_ip, eat_ip):
     motors = [stepperweblib.StepperControl(ip) for ip in [feed_ip, eat_ip]]
 
     for motor in motors:
-        motor.motor_halt()
+        motor.halt()
 
     return motors[0], motors[1]
+
+
+def feed_paper(steps, speed=200):
+    steps *= -1  # rotate 'backwards'
+    logger.info('moving feed motor {} steps'.format(steps))
+    feed.move_relative(speed, steps)
+
+    while True:
+        if feed.check_reached():
+            feed.halt()
+            logger.info('feed motor movement finished')
+            break
+
+
+def eat_paper(steps=250000, speed=200):
+    '''
+    move eat motor continuously until limit switch is engaged. this will only
+    work if idler arm + limit switch combo can tolerate the wind-down that occurs
+    with motor.halt(). steps defaults to one full revolution, or 250,000 steps
+    with a 10:1 gear ratio
+    '''
+    logger.info('moving eat motor {} steps'.format(steps))
+    eat.move_relative(speed, steps)
+
+    while True:
+        if not eat.check_flag():  # limit switch engaged == 0
+            eat.halt()
+            logger.info('limit switch engaged, motor halted')
+            break
+        elif eat.check_reached() and eat.check_flag():
+            logger.info('eat motor movement finished but limit switch not engaged... repeating movement')
+            eat.move_relative(speed, steps)
+
+
+def eat_paper_with_increment(motor, steps=250000, speed=200):
+    '''
+    move motor certain # of steps, then increment 1 step until limit switch engaged.
+    this would be used if we precisely calculate # of steps to move eat motor each time.
+    '''
+    logger.info('moving eat motor {} steps'.format(steps))
+    eat.move_relative(speed, steps)
+
+    while True:
+        if eat.check_reached():
+            if not eat.check_flag():  # limit switch engaged == 0
+                eat.halt()
+                logger.info('limit switch engaged, motor halted')
+                break
+            eat.move_relative(1, 1)
 
 
 if __name__ == '__main__':
@@ -67,25 +116,28 @@ if __name__ == '__main__':
     # tomorrow = today + timedelta(days=1)
     # waiter.wait_til(tomorrow)
 
-    movements = ['08:11:18:12:09:00', '08:11:18:12:08:30', '08:11:18:12:08:00']
+    movements = ['18:49:00', '18:47:30', '18:47:00']
 
     while movements:
         movement = movements.pop()
         waiter.wait_til(movement)
 
-        feed.move_relative(200, 25000)
-        while True:
-            if feed.check_reached():
-                feed.motor_halt()
-                logger.info('feed motor movement finished')
-                break
+        feed_paper(steps=25000)
+        eat_paper(steps=25000)
 
-        eat_steps = 25000 - 5000
-        eat.move_relative(200, eat_steps)
-        while True:
-            if eat.check_reached():
-                if not eat.check_flag():
-                    eat.motor_halt()
-                    logger.info('eat motor movement finished')
-                    break
-                eat.move_relative(1, 1)
+        # feed.move_relative(200, 25000)
+        # while True:
+        #     if feed.check_reached():
+        #         feed.halt()
+        #         logger.info('feed motor movement finished')
+        #         break
+        #
+        # eat_steps = 25000 - 5000
+        # eat.move_relative(200, eat_steps)
+        # while True:
+        #     if eat.check_reached():
+        #         if not eat.check_flag():
+        #             eat.halt()
+        #             logger.info('eat motor movement finished')
+        #             break
+        #         eat.move_relative(1, 1)
