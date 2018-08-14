@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # control movement of a stepper motor by mapping discrete integrals of a dataset
 # to motor steps
+# handy paper roll calculator: http://www.handymath.com/cgi-bin/rollturn3.cgi
 # 4/15/18
 # updated 8/13/18
 
@@ -115,7 +116,7 @@ if __name__ == '__main__':
     feed, eat = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
     waiter = Wait()
     ingredients = Data()
-    kitchen = Compute()
+    kitchen = Compute(target_diameter=33.70645)  # 33.7 in is diameter of roll after half the paper has been unraveled
 
     meals = [ingredients.percents[i] * kitchen.total_inches_to_move for i in range(len(ingredients.percents))]
     meals = deque(meals)
@@ -123,12 +124,12 @@ if __name__ == '__main__':
 
     for i in range(len(meals)):
         meal = meals[i]
-        logger.info('eating meal {} of {}'.format(i, len(meals)))
+        logger.info('eating meal {} of {}'.format(i, len(meals) - 1))
         bites = break_into_bites(meal)
 
         for j in range(len(bites)):
-            bite = bites[i]
-            logger.info('eating bite {} of {} from meal {}'.format(j, len(bites), i))
+            bite = bites[j]
+            logger.info('eating bite {} of {} from meal {}'.format(j, len(bites) - 1, i))
             steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
             feed_paper(feed, steps=steps)
             steps_completed += steps
@@ -137,6 +138,5 @@ if __name__ == '__main__':
         logger.info('finished meal {}, getting sleepy...'.format(i))
         sleep_tight(waiter)
 
-    logger.info('kitchen.total_steps_to_complete: {}'.format(kitchen.total_steps_to_complete))
-    logger.info('kitchen.steps_completed: {}'.format(kitchen.steps_completed))
+    kitchen.log_test_results()
     logger.info('actual steps completed: {}'.format(steps_completed))

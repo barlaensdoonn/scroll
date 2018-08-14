@@ -22,7 +22,7 @@ class Compute:
     there are two approaches for calculating the target diameter in this case:
     1. target_diameter equals half the entire roll's diameter. this will end up
        moving more than half the total paper on the roll since more paper is moved
-       per revolution at higher diameters. also the inner support core of the roll
+       per revolution at larger diameters. also the inner support core of the roll
        contains no paper.
     2. move precisely half the paper on the roll by calculating the target_diameter
        based on how many revolutions it would take to move exactly half
@@ -36,6 +36,7 @@ class Compute:
     core_radius = core_diameter / 2
     initial_diameter = 47.5
     initial_radius = initial_diameter / 2
+    end_diameter_after_half_paper_moved = 33.70645
 
     # motor constants
     steps_per_revolution = 25000
@@ -153,6 +154,18 @@ class Compute:
 
         return self.steps_completed - starting_steps
 
+    def log_test_results(self):
+        '''debug purposes only'''
+        self.logger.info('total_steps_to_complete: {}'.format(self.total_steps_to_complete))
+        self.logger.info('steps_completed: {}'.format(self.steps_completed))
+        self.logger.info('total_inches_to_move: {}'.format(self.total_inches_to_move))
+        self.logger.info('total_inches_moved: {}'.format(self.total_inches_moved))
+        self.logger.info('total_revs_to_complete: {}'.format(self.total_revs_to_complete))
+        self.logger.info('num_revs_completed: {}'.format(self.num_revs_completed))
+        self.logger.info('target_diameter: {}'.format(self.target_diameter))
+        self.logger.info('target_radius: {}'.format(self.target_radius))
+        self.logger.info('current_radius: {}'.format(self.current_radius))
+
     def print_attrs(self):
         '''debug purposes only'''
         print('steps completed: {}'.format(self.steps_completed))
@@ -161,15 +174,6 @@ class Compute:
         print('current radius: {}'.format(self.current_radius))
         print('current circumference: {}'.format(self.current_circumference))
         print('inches per step: {}'.format(self.inches_per_step))
-
-    def log_attrs(self):
-        '''debug purposes only'''
-        self.logger.debug('steps completed: {}'.format(self.steps_completed))
-        self.logger.debug('total inches moved: {}'.format(self.total_inches_moved))
-        self.logger.debug('revolutions completed: {}'.format(self.num_revs_completed))
-        self.logger.debug('current radius: {}'.format(self.current_radius))
-        self.logger.debug('current circumference: {}'.format(self.current_circumference))
-        self.logger.debug('inches per step: {}'.format(self.inches_per_step))
 
     def print_totals(self):
         '''debug purposes only'''
