@@ -112,6 +112,10 @@ def sleep_tight(waiter):
 
 
 if __name__ == '__main__':
+    # TODO:
+    # 1. on initalization, if limit switch is not engaged, eat paper until it is engaged
+    # 2. read in total_steps_completed, meal #, and bite # from state file
+    # 3. write total_steps_completed, meal #, and bite # to state file after every bite
     logger = configure_logger(get_basepath(), get_hostname())
     feed, eat = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
     waiter = Wait()
