@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # load data from csv and munge it some
 # 4/16/18
-# updated 8/13/18
+# updated 8/15/18
 
 import csv
 import logging
@@ -60,7 +60,7 @@ class Data:
         compute the integral between each unit of x and return them in a list.
         the sum of the list is equal to the total area under the curve.
         '''
-        self.logger.info('estimating function to describe the datapoints')
+        self.logger.info('computing dicrete integrals between the datapoints')
         return [np.trapz([self.y[i], self.y[i + 1]], dx=1) for i in range(len(self.y)) if i < len(self.y) - 1]
 
     def calculate_percentages(self, datapoints):
