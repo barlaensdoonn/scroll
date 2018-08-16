@@ -36,7 +36,7 @@ class Compute:
     core_radius = core_diameter / 2
     initial_diameter = 47.5
     initial_radius = initial_diameter / 2
-    end_diameter_after_half_paper_moved = 33.70645
+    diameter_after_half_paper_moved = 33.70645  # can be verified with calculate_outer_radius()
 
     # motor constants
     steps_per_revolution = 25000

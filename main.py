@@ -126,10 +126,14 @@ if __name__ == '__main__':
     motors = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
     waiter = Wait()
     ingredients = Data()
-    kitchen = Compute(target_diameter=33.70645)  # 33.7 in is diameter of roll after half the paper has been unraveled
+    kitchen = Compute(target_diameter=Compute.diameter_after_half_paper_moved)
 
+    # distribute total_inches_to_move into meals based on how many datapoints we have,
+    # and the percentage of their integrals to the total integral of the function.
+    # determine how many portions are in a meal based on the total # of movements
+    # divided by the # of meals.
     meals = [ingredients.percents[i] * kitchen.total_inches_to_move for i in range(len(ingredients.percents))]
-    portions_per_meal = kitchen.total_num_movements / len(meals)  # break the meals up into day size portions
+    portions_per_meal = kitchen.total_num_movements / len(meals)
     steps_completed = 0
 
     for i in range(len(meals)):
@@ -139,6 +143,7 @@ if __name__ == '__main__':
         portions = [meal / portions_per_meal for j in range(portions_per_meal)]
 
         for k in range(len(portions)):
+            # break portions into 4 inch bites for the idler arm
             logger.info('breaking portion {} into bites'.format(k))
             bites = break_into_bites(portions[k])
             logger.info('eating portion {} of {}'.format(k, len(portions) - 1))
@@ -147,11 +152,16 @@ if __name__ == '__main__':
                 bite = bites[m]
                 logger.info('eating bite {} of {} from portion {} of meal {}'.format(m, len(bites) - 1, k, i))
 
+                # calculate steps per inches for the bite, and velocity for the motor.
+                # then move.
                 steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
                 feed_speed = kitchen.calculate_current_velocity(kitchen.current_circumference)
                 feed_paper(motors.feed, steps=steps)  # will add speed here later, for now testing at max speed
                 steps_completed += steps
 
+                # calculate outer radius for eat motor based on total paper moved, then
+                # circumference of the eat roll, which we need to calculate motor speed.
+                # then move.
                 eat_outer_radius = kitchen.calculate_outer_radius(kitchen.total_inches_moved)
                 eat_circumference = kitchen.calculate_circumference(eat_outer_radius)
                 eat_speed = kitchen.calculate_current_velocity(eat_circumference)
