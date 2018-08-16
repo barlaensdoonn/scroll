@@ -45,7 +45,7 @@ class Compute:
     max_velocity = 250  # based on the motor specs
     target_velocity = 0.5  # inches per second
 
-    def __init__(self, target_diameter=(initial_diameter / 2)):
+    def __init__(self, target_diameter=core_diameter):
         '''
         set target_diameter to core_diameter to run simulation of unravelling
         the entire roll of paper. see class dosctring for explanation of
@@ -60,13 +60,11 @@ class Compute:
         self.current_radius = self.get_current_radius()
         self.current_circumference = self.get_current_circumference()
         self.inches_per_step = self.get_inches_per_step()
-
-        # these attrs mainly for testing, may be removed in the future
         self.total_revs_to_complete = self.get_total_num_revs(self.target_radius)
         self.total_steps_to_complete = self.get_total_num_steps()
         self.total_num_layers = self.get_total_num_layers()
         self.total_linear_inches = self.get_total_linear_inches()
-        self.total_inches_to_move = self.total_linear_inches / 2
+        self.total_inches_to_move = self.total_linear_inches / 2  # move exactly half the paper on the roll
 
     def _init_logger(self):
         logger = logging.getLogger('compute')
