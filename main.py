@@ -3,15 +3,15 @@
 # to motor steps
 # handy paper roll calculator: http://www.handymath.com/cgi-bin/rollturn3.cgi
 # 4/15/18
-# updated 8/13/18
+# updated 8/15/18
 
 import os
 import yaml
 import logging
 import logging.config
 from socket import gethostname
+from collections import namedtuple
 from datetime import datetime, timedelta
-from collections import deque
 import stepperweblib
 from wait import Wait
 from data import Data
@@ -52,17 +52,25 @@ def configure_logger(basepath, hostname):
 
 
 def initialize_motors(feed_ip=None, eat_ip=None):
-    motors = [stepperweblib.StepperControl(ip) for ip in [feed_ip, eat_ip]]
+    logger.info('''initializing motors''')
+    Motors = namedtuple('Motors', ['feed', 'eat'])
+    init_motors = [stepperweblib.StepperControl(ip) for ip in [feed_ip, eat_ip]]
+    motors = Motors(feed=init_motors[0], eat=init_motors[1])
 
     for motor in motors:
         motor.halt()
 
-    return (motors[0], motors[1])
+    # check if limit switch is engaged on eat motor; eat paper if it's not
+    if motors.eat.check_flag():  # limit switch not engaged == 1
+        logger.warning('limit switch not engaged upon initialization')
+        eat_paper(motors.eat)
+
+    return motors
 
 
-def feed_paper(motor, steps, speed=200):
+def feed_paper(motor, steps, speed=250):
     steps *= -1  # rotate 'backwards'
-    logger.info('moving feed motor {} steps'.format(steps))
+    logger.info('moving feed motor {} steps at speed {}'.format(steps, speed))
     motor.move_relative(speed, steps)
 
     while True:
@@ -72,14 +80,12 @@ def feed_paper(motor, steps, speed=200):
             break
 
 
-def eat_paper(motor, steps=25000, speed=200):
+def eat_paper(motor, steps=500, speed=2):
     '''
-    move eat motor continuously until limit switch is engaged. this will only
-    work if idler arm + limit switch combo can tolerate the wind-down that occurs
-    with motor.halt(). steps defaults to 1/10th revolution, or 25,000 steps
-    with a 10:1 gear ratio.
+    move eat motor continuously until limit switch is engaged. steps defaults
+    to 1/50th of a revolution, or 500 steps. speed defaults to a conservative 2
     '''
-    logger.info('moving eat motor {} steps'.format(steps))
+    logger.info('moving eat motor {} steps at speed {}'.format(steps, speed))
     motor.move_relative(speed, steps)
 
     while True:
@@ -87,19 +93,20 @@ def eat_paper(motor, steps=25000, speed=200):
             motor.halt()
             logger.info('limit switch engaged, motor halted')
             break
-        elif motor.check_reached() and eat.check_flag():
+        elif motor.check_reached() and motor.check_flag():
             logger.info('eat motor movement finished but limit switch not engaged... repeating movement')
             motor.move_relative(speed, steps)
 
 
-def break_into_bites(meal, max_inches_per_bite=4):
-    numbites = int(meal / max_inches_per_bite)  # int() always rounds down
-    last_bite = meal % max_inches_per_bite
+def break_into_bites(portion, max_inches_per_bite=4):
+    '''break portion into 4 inch bites for the idler arm, and append the remainder'''
+    numbites = int(portion / max_inches_per_bite)  # int() always rounds down
+    last_bite = portion % max_inches_per_bite
 
     bites = [4 for i in range(numbites)]
     bites.append(last_bite)
 
-    return deque(bites)
+    return bites
 
 
 def sleep_tight(waiter):
@@ -116,31 +123,40 @@ if __name__ == '__main__':
     # 1. on initalization, if limit switch is not engaged, eat paper until it is engaged
     # 2. read in total_steps_completed, meal #, and bite # from state file
     # 3. write total_steps_completed, meal #, and bite # to state file after every bite
+    # 4. lower log rotator size
     logger = configure_logger(get_basepath(), get_hostname())
-    feed, eat = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
+    motors = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
     waiter = Wait()
     ingredients = Data()
     kitchen = Compute(target_diameter=33.70645)  # 33.7 in is diameter of roll after half the paper has been unraveled
 
     meals = [ingredients.percents[i] * kitchen.total_inches_to_move for i in range(len(ingredients.percents))]
-    meals = deque(meals)
+    portions_per_meal = kitchen.total_num_movements / len(meals)  # break the meals up into day size portions
     steps_completed = 0
 
     for i in range(len(meals)):
         meal = meals[i]
         logger.info('eating meal {} of {}'.format(i, len(meals) - 1))
-        bites = break_into_bites(meal)
+        logger.info('breaking meal {} into {} daily portions'.format(i, portions_per_meal))
+        portions = [meals[j] / portions_per_meal for j in range(portions_per_meal)]
 
-        for j in range(len(bites)):
-            bite = bites[j]
-            logger.info('eating bite {} of {} from meal {}'.format(j, len(bites) - 1, i))
-            steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
-            feed_paper(feed, steps=steps)
-            steps_completed += steps
-            # eat_paper(eat, steps=25000)
+        for k in range(len(portions)):
+            bites = break_into_bites(portions[k])
+            logger.info('eating portion {} of {}'.format(k, len(portions) - 1))
 
-        logger.info('finished meal {}, getting sleepy...'.format(i))
-        sleep_tight(waiter)
+            for m in range(len(bites)):
+                bite = bites[m]
+                logger.info('eating bite {} of {} from portion {} of meal {}'.format(m, len(bites) - 1, k, i))
+                steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
+                speed = kitchen.calculate_current_velocity()
+                feed_paper(motors.feed, steps=steps)
+                steps_completed += steps
+                # eat_paper(motors.eat, steps=25000)
+
+            logger.info('finished portion {}, getting sleepy...'.format(i))
+            sleep_tight(waiter)
+
+        logger.info('finished meal {}, yum!!'.format(i))
 
     kitchen.log_test_results()
     logger.info('actual steps completed: {}'.format(steps_completed))
