@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# formulas to calculate properties of a roll of paper
-# and map them to stepper motor steps
+# formulas to calculate properties of a roll of paper and map them to stepper motor steps
+# handy paper roll calculator: http://handymath.com/cgi-bin/roll4.cgi?submit=Entry
 # 4/15/18
 # updated 8/15/18
 
@@ -74,10 +74,6 @@ class Compute:
 
         return logger
 
-    def _get_circumference(self, radius):
-        '''C = 2πr = πd'''
-        return 2 * pi * radius
-
     def get_num_revs_completed(self):
         '''
         # of revolutions completed is # of steps completed
@@ -97,7 +93,7 @@ class Compute:
         current circuference is also the # of inches of paper
         that will move with a single revolution
         '''
-        return self._get_circumference(self.current_radius)
+        return self.calculate_circumference(self.current_radius)
 
     def get_inches_per_step(self):
         '''
@@ -137,9 +133,13 @@ class Compute:
         circumference of the average radius
         '''
         average_radius = (self.initial_radius + self.core_radius) / 2
-        average_layer_length = self._get_circumference(average_radius)
+        average_layer_length = self.calculate_circumference(average_radius)
 
         return self.get_total_num_layers() * average_layer_length
+
+    def calculate_circumference(self, radius):
+        '''C = 2πr = πd'''
+        return 2 * pi * radius
 
     def calculate_steps_per_inches(self, inches_to_move=max_inches_per_move):
         '''calculate # of steps to move some # of inches'''
@@ -156,9 +156,23 @@ class Compute:
 
         return self.steps_completed - starting_steps
 
-    def calculate_current_velocity(self):
+    def calculate_current_velocity(self, circumference):
         '''calculate the speed parameter to pass to the motor based on current circumference'''
-        return self.target_velocity / self.current_circumference * self.steps_per_revolution / 60
+        return self.target_velocity / circumference * self.steps_per_revolution / 60
+
+    def calculate_outer_radius(self, length_of_paper):
+        '''
+        since the steps moved per motor do not have a 1:1 correlation, we need to
+        estimate the starting radius of the eat roll from the total linear inches
+        of paper moved by the feed roll. we do this by translating the cross-sectional
+        area of the paper moved into the area of a circle, then finding the radius
+        from the area.
+
+        derivation of the formula was found here:
+        http://www.efunda.com/forum/show_message.cfm?id=7733&start=1&thread=7724
+        '''
+        cross_sectional_area = length_of_paper * self.paper_thickness
+        return (cross_sectional_area / pi + self.core_radius**2)**0.5
 
     def log_test_results(self):
         '''debug purposes only'''

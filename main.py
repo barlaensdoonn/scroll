@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # control movement of a stepper motor by mapping discrete integrals of a dataset
 # to motor steps
-# handy paper roll calculator: http://www.handymath.com/cgi-bin/rollturn3.cgi
 # 4/15/18
 # updated 8/15/18
 
@@ -120,10 +119,9 @@ def sleep_tight(waiter):
 
 if __name__ == '__main__':
     # TODO:
-    # 1. on initalization, if limit switch is not engaged, eat paper until it is engaged
-    # 2. read in total_steps_completed, meal #, and bite # from state file
-    # 3. write total_steps_completed, meal #, and bite # to state file after every bite
-    # 4. lower log rotator size
+    # 1. read in total_steps_completed, meal #, and bite # from state file
+    # 2. write total_steps_completed, meal #, and bite # to state file after every bite
+    # 3. lower log rotator size
     logger = configure_logger(get_basepath(), get_hostname())
     motors = initialize_motors(feed_ip='10.0.0.59', eat_ip='10.0.0.62')
     waiter = Wait()
@@ -141,17 +139,23 @@ if __name__ == '__main__':
         portions = [meal / portions_per_meal for j in range(portions_per_meal)]
 
         for k in range(len(portions)):
+            logger.info('breaking portion {} into bites'.format(k))
             bites = break_into_bites(portions[k])
             logger.info('eating portion {} of {}'.format(k, len(portions) - 1))
 
             for m in range(len(bites)):
                 bite = bites[m]
                 logger.info('eating bite {} of {} from portion {} of meal {}'.format(m, len(bites) - 1, k, i))
+
                 steps = int(kitchen.calculate_steps_per_inches(inches_to_move=bite))
-                speed = kitchen.calculate_current_velocity()
-                feed_paper(motors.feed, steps=steps)
+                feed_speed = kitchen.calculate_current_velocity(kitchen.current_circumference)
+                feed_paper(motors.feed, steps=steps)  # will add speed here later, for now testing at max speed
                 steps_completed += steps
-                # eat_paper(motors.eat, steps=25000)
+
+                eat_outer_radius = kitchen.calculate_outer_radius(kitchen.total_inches_moved)
+                eat_circumference = kitchen.calculate_circumference(eat_outer_radius)
+                eat_speed = kitchen.calculate_current_velocity(eat_circumference)
+                # eat_paper(motors.eat, speed=eat_speed)
 
             logger.info('finished portion {}, getting sleepy...'.format(i))
             sleep_tight(waiter)
