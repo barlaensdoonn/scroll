@@ -3,7 +3,7 @@
 # formulas to calculate properties of a roll of paper
 # and map them to stepper motor steps
 # 4/15/18
-# updated 8/13/18
+# updated 8/15/18
 
 import logging
 from math import pi
@@ -41,7 +41,9 @@ class Compute:
     # motor constants
     steps_per_revolution = 25000
     total_num_movements = 365 * 50  # 365 days times 50 years (placeholder, currently unknown)
-    max_inches_per_move = 4  # max inches that can move based on the travel of the idler arm (placeholder, currently unknown)
+    max_inches_per_move = 4  # max inches that can move based on the travel of the idler arm
+    max_velocity = 250  # based on the motor specs
+    target_velocity = 0.5  # inches per second
 
     def __init__(self, target_diameter=(initial_diameter / 2)):
         '''
@@ -153,6 +155,10 @@ class Compute:
             self.inches_per_step = self.get_inches_per_step()
 
         return self.steps_completed - starting_steps
+
+    def calculate_current_velocity(self):
+        '''calculate the speed parameter to pass to the motor based on current circumference'''
+        return self.target_velocity / self.current_circumference * self.steps_per_revolution / 60
 
     def log_test_results(self):
         '''debug purposes only'''
