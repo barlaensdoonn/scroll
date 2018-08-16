@@ -138,7 +138,7 @@ if __name__ == '__main__':
         meal = meals[i]
         logger.info('eating meal {} of {}'.format(i, len(meals) - 1))
         logger.info('breaking meal {} into {} daily portions'.format(i, portions_per_meal))
-        portions = [meals[j] / portions_per_meal for j in range(portions_per_meal)]
+        portions = [meal / portions_per_meal for j in range(portions_per_meal)]
 
         for k in range(len(portions)):
             bites = break_into_bites(portions[k])
