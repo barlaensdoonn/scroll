@@ -155,7 +155,7 @@ class Compute:
         return self.steps_completed - starting_steps
 
     def calculate_current_velocity(self, circumference):
-        '''calculate the speed parameter to pass to the motor based on current circumference'''
+        '''calculate the speed parameter to pass to the motor based on circumference'''
         return self.target_velocity / circumference * self.steps_per_revolution / 60
 
     def calculate_outer_radius(self, length_of_paper):
