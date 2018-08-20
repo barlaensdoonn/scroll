@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # load data from csv and munge it some
 # 4/16/18
-# updated 8/15/18
+# updated 8/19/18
 
 import csv
 import logging
@@ -10,9 +10,11 @@ import numpy as np
 
 class Data:
 
-    sea_data_path = '/home/pi/gitbucket/scroll/yearly_sea_level_maxes.csv'
+    sea_level_path = '/home/pi/gitbucket/scroll/data/sea_level_rise.csv'
+    hot_days_path = '/home/pi/gitbucket/scroll/data/avg_hottest_day.csv'
+    precip_path = '/home/pi/gitbucket/scroll/data/precip_lowest_3_years_inches.csv'
 
-    def __init__(self, data_path=sea_data_path):
+    def __init__(self, data_path=sea_level_path):
         self.logger = self._init_logger()
         self.data_path = data_path
         self.original_data = self._load_data()
