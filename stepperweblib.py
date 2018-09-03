@@ -2,7 +2,8 @@
 # classes to communicate with Nanotech N5-1-3 motor controller via REST API
 # authored by Gary Stein at AlphaProto June 2018
 # refactored by Brandon Aleson July 2018
-# updated 8/3/18
+# updated by Gary Stein August 2018
+# updated 9/3/18
 
 import urllib2
 import urllib
@@ -10,6 +11,7 @@ import httplib
 import struct
 import time
 import sys
+from datetime import datetime
 
 
 class StepperComms:
@@ -105,6 +107,17 @@ class StepperComms:
         value = int(svalue, 16)
         return value
 
+    def check_up(self, host):
+        url = "http://%s/od/6041/00" % (host)
+        try:
+            # see if the server is up, timeout 1 second
+            ret = urllib2.urlopen(url, data=None, timeout=1.0)
+            return 1
+        except IOError:
+            print("Host {} is down: {}".format(host, datetime.today()))
+            sys.stdout.flush()
+            return 0
+
 
 class StepperControl:
         ControlWord = 0x6040
@@ -119,17 +132,40 @@ class StepperControl:
 
         def __init__(self, host):
             self.host = host
+            self.connected = 0
             # Create comms
             self.comms = StepperComms()
+            self.check_controller()
+            self.initialize_controller()
+
+        def initialize_controller(self):
             # Set Input 1 to 24 Volt Range
             self.comms.set_register(self.host, self.InputVoltageRange, 0x06, 1, self.comms.typeU32)
             # Set As Position Mode
             self.comms.set_register(self.host, self.OperatingMode, 0x00, 1, self.comms.typeU08)
 
+            # Initial Move to set up states
+            self.move_relative(0, 0)
+
+            # Always come up in halt
+            # self.halt()
+
+        def check_controller(self):
+            count = 0
+            while(self.comms.check_up(self.host) == 0):
+                count += 1
+            # If it ever failed, assume it was down
+            # and reinitialize
+            if count > 0:
+                self.initialize_controller()
+
         # Speed between 0 and 250 (positive only)
         # Already ramps up and down, max speed
         # Position negative and positive
         def move_relative(self, Speed, Steps):
+            # Always need to check if controller is up
+            self.check_controller()
+
             # Set speed as unsigned number
             self.comms.set_register(self.host, self.ProfileVelocity, 0, Speed, self.comms.typeU32)
             # Set relative position in ticks (25000 = 1 revolution of motor shaft)
@@ -153,6 +189,9 @@ class StepperControl:
 
         # Halt and clear everything?
         def halt(self):
+            # Always need to check if controller is up
+            self.check_controller()
+
             # Halt Free Spin
             # self.comms.set_register(self.host, self.ControlWord, 0, 0x1000, self.comms.typeU16)
             # Halt powered?
@@ -163,10 +202,10 @@ class StepperControl:
             # Hold
             self.comms.set_register(self.host, self.ControlWord, 0, 0x000F, self.comms.typeU16)
 
-            # Move Zero?
-            # self.move_relative(0, 0)
-
         def check_reached(self):
+            # Always need to check if controller is up
+            self.check_controller()
+
             # In status? 0x6041
             # Bit 10 Target Reached
             # Bit 12 Point Acknowledged
@@ -178,16 +217,25 @@ class StepperControl:
                 return 0
 
         def check_flag(self):
+            # Always need to check if controller is up
+            self.check_controller()
+
             flag = self.comms.get_register(self.host, self.Inputs, 0)
             # print flag
             return 1 if(flag & 0x10000 == 0) else 0
 
         def get_status(self):
+            # Always need to check if controller is up
+            self.check_controller()
+
             v = self.comms.get_register(self.host, self.StatusWord, 0)
             # print "%04X" % (v)
             print(v)
 
         def get_closed(self):
+            # Always need to check if controller is up
+            self.check_controller()
+
             v = self.comms.get_register(self.host, self.ClosedLoop, 0)
             # print "%04X" % (v)
             print(v)

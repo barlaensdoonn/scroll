@@ -3,7 +3,7 @@
 # formulas to calculate properties of a roll of paper and map them to stepper motor steps
 # handy paper roll calculator: http://handymath.com/cgi-bin/roll4.cgi?submit=Entry
 # 4/15/18
-# updated 8/15/18
+# updated 9/3/18
 
 import logging
 from math import pi
@@ -77,7 +77,7 @@ class Compute:
         # of revolutions completed is # of steps completed
         divided by # of steps per revolution
         '''
-        return self.steps_completed / self.steps_per_revolution
+        return float(self.steps_completed) / self.steps_per_revolution
 
     def get_current_radius(self):
         '''
@@ -156,7 +156,15 @@ class Compute:
 
     def calculate_current_velocity(self, circumference):
         '''calculate the speed parameter to pass to the motor based on circumference'''
-        return self.target_velocity / circumference * self.steps_per_revolution / 60
+        # should "never happen"; restrict to range 1 to 250, since it is an integer -gary
+        velocity = self.target_velocity / circumference * self.steps_per_revolution / 60
+
+        if velocity < 1:
+            velocity = 1
+        elif velocity > self.max_velocity:
+            velocity = self.max_velocity
+
+        return velocity
 
     def calculate_outer_radius(self, length_of_paper):
         '''
