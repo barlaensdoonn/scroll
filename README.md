@@ -10,6 +10,9 @@ sudo pip install pyyaml
 sudo pip install numpy
 ```
 
+## external hard drive
+there is an 8GB external thumb drive automatically mounted at boot to ```/mnt/backup```. all of the automount settings are stored in the ```/etc/fstab``` file. [more info here](https://www.raspberrypi.org/documentation/configuration/external-storage.md)
+
 ## real time clock
 currently using the [RasPi DS1307 RTC-I2C HAT](http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html) from Nation Electronics
 
