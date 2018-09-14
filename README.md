@@ -13,6 +13,9 @@ sudo pip install numpy
 ## external hard drive
 there is an 8GB external thumb drive automatically mounted at boot to ```/mnt/backup```. all of the automount settings are stored in the ```/etc/fstab``` file. [more info here](https://www.raspberrypi.org/documentation/configuration/external-storage.md)
 
+## autolaunching script as a systemd service
+the script ```main.py``` is set to be run automatically as a systemd service. the relevant systemd service file is located at ```/lib/systemd/system```. note that in order for the service to run successfully relative file paths cannot be used. all file paths must be absolute. the ```get_basepath()``` function in the ```main.py``` module is useful for setting the correct filepaths. [more info on systemd services here](http://www.diegoacuna.me/how-to-run-a-script-as-a-service-in-raspberry-pi-raspbian-jessie/)
+
 ## real time clock
 currently using the [RasPi DS1307 RTC-I2C HAT](http://www.nationelectronics.com/raspberry-pi-extensions/2-raspberry-pi-hat-real-time-clock-v11-0648260628208.html) from Nation Electronics
 
